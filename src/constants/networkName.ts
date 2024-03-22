@@ -1,0 +1,4 @@
+export enum NETWORK_NAME {
+  "ETHEREUM" = "ETHEREUM",
+  "POLYGON" = "POLYGON",
+}

@@ -1,0 +1,4 @@
+export enum BLOCKCHAIN_ENVIRONMENT {
+  "TESTNET" = "TESTNET",
+  "MAINNET" = "MAINNET",
+}
