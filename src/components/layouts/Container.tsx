@@ -1,7 +1,7 @@
 import { FCC } from "@types";
 import { ContainerProps } from "./Container.types";
 
-// Container with tailwind css with common max with and margin auto
+// Container with common styles for the app
 export const Container: FCC<ContainerProps> = ({
   children,
   className = "",

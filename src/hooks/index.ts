@@ -1,2 +1,2 @@
-export * from "./useTheme";
-export * from "./useToast";
+export {useTheme} from "./useTheme";
+export {useToast} from "./useToast";
