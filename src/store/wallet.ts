@@ -1,9 +1,15 @@
 import { BLOCKCHAIN_ENVIRONMENT, NETWORK_NAME } from "@constants";
+import { TESTNET_NETWORKS, TestnetNetworks } from "@constants/testnetNetworks";
 import { MetamaskClassService } from "@services";
 import { showError } from "@utils";
 import { create } from "zustand";
 
 interface Wallet {
+  network: NETWORK_NAME;
+  networkEnvironment?: {
+    environment: BLOCKCHAIN_ENVIRONMENT;
+    testnetNetwork?: TestnetNetworks<NETWORK_NAME>;
+  };
   address?: string;
   balance: number;
   percentage24h: number;
@@ -18,6 +24,11 @@ interface WalletStoreState {
 }
 
 const initialState: Wallet = {
+  network: NETWORK_NAME.ETHEREUM,
+  networkEnvironment: {
+    environment: BLOCKCHAIN_ENVIRONMENT.TESTNET,
+    testnetNetwork: TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA,
+  },
   address: undefined,
   balance: 0,
   isLoading: false,

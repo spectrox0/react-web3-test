@@ -1,29 +1,15 @@
 import { BLOCKCHAIN_ENVIRONMENT } from "./blockchainEnvironment";
 import { NETWORK_NAME } from "./networkName";
-
-export const testnetNetworks = Object.freeze({
-  [NETWORK_NAME.ETHEREUM]: {
-    GOERLI: "GOERLI",
-    SEPOLIA: "SEPOLIA",
-  },
-  [NETWORK_NAME.POLYGON]: {
-    MUMBAI: "MUMBAI",
-  },
-} as const);
-
-export const defaultTestnetNetwork = Object.freeze({
-  [NETWORK_NAME.ETHEREUM]: testnetNetworks[NETWORK_NAME.ETHEREUM].SEPOLIA,
-  [NETWORK_NAME.POLYGON]: testnetNetworks[NETWORK_NAME.POLYGON].MUMBAI,
-} as const);
+import { defaultTestnetNetwork, TESTNET_NETWORKS } from "./testnetNetworks";
 
 export const chainId = Object.freeze({
   [BLOCKCHAIN_ENVIRONMENT.TESTNET]: {
     [NETWORK_NAME.ETHEREUM]: {
-      [testnetNetworks[NETWORK_NAME.ETHEREUM].GOERLI]: 5,
-      [testnetNetworks[NETWORK_NAME.ETHEREUM].SEPOLIA]: 11155111,
+      [TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].GOERLI]: 5,
+      [TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA]: 11155111,
     },
     [NETWORK_NAME.POLYGON]: {
-      [testnetNetworks[NETWORK_NAME.POLYGON].MUMBAI]: 80001,
+      [TESTNET_NETWORKS[NETWORK_NAME.POLYGON].MUMBAI]: 80001,
     },
   },
   [BLOCKCHAIN_ENVIRONMENT.MAINNET]: {
@@ -46,17 +32,17 @@ export const defaultTestChainId = Object.freeze({
 export const rpcUrls = Object.freeze({
   [BLOCKCHAIN_ENVIRONMENT.TESTNET]: {
     [NETWORK_NAME.ETHEREUM]: {
-      [testnetNetworks[NETWORK_NAME.ETHEREUM].GOERLI]: [
+      [TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].GOERLI]: [
         "https://ethereum-goerli.publicnode.com",
         "https://endpoints.omniatech.io/v1/eth/goerli/public",
       ],
-      [testnetNetworks[NETWORK_NAME.ETHEREUM].SEPOLIA]: [
+      [TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA]: [
         "https://ethereum-sepolia-rpc.publicnode.com",
         "https://endpoints.omniatech.io/v1/eth/sepolia/public",
       ],
     },
     [NETWORK_NAME.POLYGON]: {
-      [testnetNetworks[NETWORK_NAME.POLYGON].MUMBAI]: [
+      [TESTNET_NETWORKS[NETWORK_NAME.POLYGON].MUMBAI]: [
         "https://polygon-mumbai-bor.publicnode.com",
         "https://endpoints.omniatech.io/v1/matic/mumbai/public",
       ],

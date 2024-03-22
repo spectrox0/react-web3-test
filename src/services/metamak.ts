@@ -1,8 +1,5 @@
 import { EXTERNAL_METHODS, NETWORK_NAME } from "@constants";
-import {
-  AVAILABLE_TOKEN,
-  AvailablePaymentUnit,
-} from "@constants/availableToken";
+import { AVAILABLE_TOKEN, AvailableToken } from "@constants/availableToken";
 import { BLOCKCHAIN_ENVIRONMENT } from "@constants/blockchainEnvironment";
 import {
   chainId,
@@ -16,10 +13,10 @@ import {
 } from "@constants/contractAddress";
 import { CRYPTO_UNITS } from "@constants/unit";
 import { UnitNetwork } from "@constants/unitNetwork";
+import { WEI_DECIMAL } from "@constants/weiDecimal";
 import { ABI_ERC20, AppError } from "@utils";
 import {
   BrowserProvider,
-  Contract,
   ethers,
   formatEther,
   TransactionReceipt,
@@ -107,16 +104,16 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
       : null;
   }
 
-  isValidPaymentUnit = (
+  isValidUnit = (
     unit: CRYPTO_UNITS
-  ): unit is AvailablePaymentUnit<NETWORK_NAME.ETHEREUM> => {
+  ): unit is AvailableToken<NETWORK_NAME.ETHEREUM> => {
     return AVAILABLE_TOKEN[this.blockchain].some(value => value === unit);
   };
 
   getContractAddress = (
-    unit: AvailablePaymentUnit<NETWORK_NAME.ETHEREUM> = CRYPTO_UNITS.USDC
+    unit: AvailableToken<NETWORK_NAME.ETHEREUM> = CRYPTO_UNITS.USDC
   ) => {
-    if (!this.isValidPaymentUnit(unit)) throw new Error(`Invalid payment unit`);
+    if (!this.isValidUnit(unit)) throw new AppError(`Invalid Unit`);
     const address = this.contractAddress[unit] as string;
     if (!address) throw new Error(`Invalid payment unit`);
     return address;
@@ -127,34 +124,60 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
   ): Promise<TransactionReceipt | null> =>
     this.provider.getTransactionReceipt(txId);
 
-  getCryptoBalance = async ({ address }: { address: string }) => {
-    const balance = await this.provider.getBalance(address);
-    return Number(formatEther(balance));
+  getCryptoBalance = async (account: string | ethers.JsonRpcSigner) => {
+    const balance = await this.provider.getBalance(account);
+    return {
+      value: Number(formatEther(balance)),
+      symbol: UnitNetwork[this.blockchain],
+      valueInWei: balance,
+      decimals: WEI_DECIMAL, // <--- This is the default value for the decimals of the crypto currency in the network (18 for Ethereum (ETH) and Polygon (MATIC)),
+    };
   };
 
   getBalance = async ({
-    address,
-    paymentUnit = UnitNetwork[
+    account,
+    symbol = UnitNetwork[
       this.blockchain
-    ] as AvailablePaymentUnit<NETWORK_NAME.ETHEREUM>,
+    ] as AvailableToken<NETWORK_NAME.ETHEREUM>,
   }: {
-    address: string;
-    paymentUnit?: AvailablePaymentUnit<NETWORK_NAME.ETHEREUM>;
+    account: string | ethers.JsonRpcSigner;
+    symbol?: AvailableToken<NETWORK_NAME.ETHEREUM>;
   }) => {
-    if (paymentUnit === UnitNetwork[this.blockchain])
-      return this.getCryptoBalance({ address });
+    if (symbol === UnitNetwork[this.blockchain])
+      return this.getCryptoBalance(account);
 
     const contract = new ethers.Contract(
-      this.getContractAddress(paymentUnit),
+      this.getContractAddress(symbol),
       ABI_ERC20,
       this.provider
     );
-    if (!contract) throw new Error("contract not found");
+    if (!contract) throw new AppError("Contract not found");
     const [balance, decimals] = await Promise.all([
-      contract.balanceOf(address),
+      contract.balanceOf(account),
       contract.decimals(),
     ]);
-    return Number(balance) / 10 ** Number(decimals);
+    const valueInWei = Number(balance);
+    const formatDecimals = Number(decimals);
+    return {
+      value: valueInWei / 10 ** formatDecimals,
+      decimals: formatDecimals,
+      symbol,
+      valueInWei,
+    };
+  };
+
+  getAllBalances = async (account: string | ethers.JsonRpcSigner) => {
+    return Promise.allSettled(
+      AVAILABLE_TOKEN[this.blockchain].map(async symbol => {
+        return this.getBalance({ account, symbol });
+      })
+    ).then(results => {
+      return (
+        results.filter(
+          result => result.status === "fulfilled"
+        ) as PromiseFulfilledResult<ReturnType<this["getBalance"]>>[]
+      ).map(result => result.value);
+    });
   };
 
   connect = async () => {
@@ -180,19 +203,13 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
   async getWalletInfo() {
     try {
       const accounts = await this.provider.listAccounts();
-      const account = accounts[0]; // Tomando la primera cuenta
+      const account = accounts[0];
 
-      const balance = await this.provider.getBalance(account);
-      console.log(`Balance: ${formatEther(balance)} ETH`);
-
-      // Aquí deberías llamar a los contratos inteligentes para obtener la composición de la billetera, usando por ejemplo:
-      const contract = new Contract(
-        "0x7169D38820dfd117C3FA1f22a697dBA58d90BA06",
-        ABI_ERC20,
-        this.provider
-      );
-      const tokenBalance = await contract.balanceOf(account);
-      console.log(`Token balance: ${tokenBalance}`);
+      const balances = await this.getAllBalances(account);
+      return {
+        account,
+        balances,
+      };
     } catch (error) {
       console.error("Error getting wallet info:", error);
       throw new AppError("Error getting wallet information.");
