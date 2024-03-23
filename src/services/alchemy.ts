@@ -109,32 +109,32 @@ export class AlchemyService {
   };
 
   getHistoricalData = async (address: string): Promise<HistoricalData[]> => {
-    const data2 = await this.alchemy.core.getAssetTransfers({
-      fromBlock: "0x0",
-      fromAddress: address,
-      category: [
-        AssetTransfersCategory.EXTERNAL, // <-- ETH
-        AssetTransfersCategory.INTERNAL, // <-- ETH
-        AssetTransfersCategory.ERC20, // <-- ERC20 (Tokens),
-        AssetTransfersCategory.ERC721, // <-- ERC721 (NFTs),
-        AssetTransfersCategory.ERC1155, // <-- ERC1155 (NFTs),
-      ],
-    });
-    const data = await this.alchemy.core.getAssetTransfers({
-      fromBlock: "0x0",
-      toAddress: address,
-      category: [
-        AssetTransfersCategory.EXTERNAL, // <-- ETH
-        AssetTransfersCategory.INTERNAL, // <-- ETH
-        AssetTransfersCategory.ERC20, // <-- ERC20 (Tokens),
-        AssetTransfersCategory.ERC721, // <-- ERC721 (NFTs),
-        AssetTransfersCategory.ERC1155, // <-- ERC1155 (NFTs),
-      ],
-    });
-    console.log("data2", data2);
+    const category = [
+      AssetTransfersCategory.EXTERNAL, // <-- ETH
+      AssetTransfersCategory.INTERNAL, // <-- ETH
+      AssetTransfersCategory.ERC20, // <-- ERC20 (Tokens),
+      AssetTransfersCategory.ERC721, // <-- ERC721 (NFTs),
+      AssetTransfersCategory.ERC1155, // <-- ERC1155 (NFTs),
+    ];
+    const data = await Promise.all([
+      this.alchemy.core.getAssetTransfers({
+        fromBlock: "0x0",
+        toAddress: address,
+        category,
+      }),
+      this.alchemy.core.getAssetTransfers({
+        fromBlock: "0x0",
+        fromAddress: address,
+        category,
+      }),
+    ])
+      // In this case, we are interested in both the transactions that the user has received and the transactions that the user has sent
+      // So we concatenate the two arrays
+      // We suppose that the user has received the transaction if the toAddress is equal to the user's address
+      .then(([receive, send]) => receive.transfers.concat(send.transfers));
 
     return Promise.all(
-      data.transfers.map(async tx => {
+      data.map(async tx => {
         const urlExplorer = `${this.explorerBaseUrl.TRANSACTION}${tx.hash}`;
         const date = await this.alchemy.core.getBlock(tx.blockNum);
         return {
@@ -144,6 +144,7 @@ export class AlchemyService {
           symbol: (tx.asset as string).toUpperCase(),
           fromAddress: tx.from as string, // <-- if the from address is 0x0000000000000000000000000000000000000000 this mean that the transaction from airdrop or faucet
           toAddress: tx.to as string,
+          receive: tx.to === address,
           urlExplorer,
           txHash: tx.hash,
         };
