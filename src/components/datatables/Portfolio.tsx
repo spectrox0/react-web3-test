@@ -13,34 +13,46 @@ type BodyTemplate =
       data: CalculatedPortfolio["wallet"]["balanceWithPrices"][number],
       options: ColumnBodyOptions
     ) => ReactNode);
+const tokenTemplate: BodyTemplate = rowData => {
+  const Icon = getIconUnit(rowData.symbol as CRYPTO_UNITS);
+  return (
+    <div className="flex items-center gap-3">
+      {Icon && <Icon width={35} height={35} />}
+      <div className="flex flex-col gap-1">
+        <p className="m-0 p-0 font-bold text-gray-950">{rowData.symbol}</p>
+        <p className="m-0 p-0 font-medium text-gray-700">{rowData.name}</p>
+      </div>
+    </div>
+  );
+};
+
+const balanceTemplate: BodyTemplate = rowData => {
+  return (
+    <div className="flex flex-col justify-center gap-1">
+      <p className="m-0 p-0 font-bold text-gray-950">
+        {formatCurrency(rowData.value)}
+      </p>
+      <p className="m-0 p-0 font-medium text-gray-700">
+        {formatCurrency(rowData.balance)} {rowData.symbol}
+      </p>
+    </div>
+  );
+};
+
+const percentageChange24hTemplate: BodyTemplate = rowData => {
+  const variation = percentageVariation(rowData.percentage24h);
+  return (
+    <div className="flex items-center gap-3">
+      <p className={`m-0 p-0 font-bold ${variation}`}>
+        {rowData.percentage24h > 0 && "+"}
+        {rowData.percentage24h}%
+      </p>
+    </div>
+  );
+};
+
 export const PortfolioTable: FC = () => {
   const { wallet, totalAmount } = usePrices();
-
-  const tokenTemplate: BodyTemplate = rowData => {
-    const Icon = getIconUnit(rowData.symbol as CRYPTO_UNITS);
-    return (
-      <div className="flex items-center gap-3">
-        {Icon && <Icon width={35} height={35} />}
-        <div className="flex flex-col gap-1">
-          <p className="m-0 p-0 font-bold text-gray-950">{rowData.symbol}</p>
-          <p className="m-0 p-0 font-medium text-gray-700">{rowData.name}</p>
-        </div>
-      </div>
-    );
-  };
-
-  const balanceTemplate: BodyTemplate = rowData => {
-    return (
-      <div className="flex flex-col justify-center gap-1">
-        <p className="m-0 p-0 font-bold text-gray-950">
-          {formatCurrency(rowData.value)}
-        </p>
-        <p className="m-0 p-0 font-medium text-gray-700">
-          {formatCurrency(rowData.balance)} {rowData.symbol}
-        </p>
-      </div>
-    );
-  };
 
   const percentageOfTotalTemplate: BodyTemplate = rowData => {
     const percentage =
@@ -48,18 +60,6 @@ export const PortfolioTable: FC = () => {
     return <p className="font-semibold text-gray-950">%{percentage}</p>;
   };
 
-  const percentageChange24hTemplate: BodyTemplate = rowData => {
-    const variation = percentageVariation(rowData.percentage24h);
-    return (
-      <div className="flex items-center gap-3">
-        <p className={`m-0 p-0 font-bold ${variation}`}>
-          {rowData.percentage24h > 0 && "+"}
-          {rowData.percentage24h}%
-        </p>
-      </div>
-    );
-  };
-  console.log(wallet);
   return (
     <DataTable
       value={wallet.balanceWithPrices}

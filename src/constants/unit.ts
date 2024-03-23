@@ -1,6 +1,7 @@
 export enum CRYPTO_UNITS {
   "ETH" = "ETH",
   "WETH" = "WETH",
+  "WBTC" = "WBTC",
   "MATIC" = "MATIC",
   "USDC" = "USDC",
   "USDT" = "USDT",
@@ -8,4 +9,5 @@ export enum CRYPTO_UNITS {
   "BNB" = "BNB",
   "BTC" = "BTC",
   "SOL" = "SOL",
+  "ALGO" = "ALGO",
 }
