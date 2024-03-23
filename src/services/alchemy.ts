@@ -1,5 +1,7 @@
 import { API_KEYS } from "@config";
-import { Alchemy, Network } from "alchemy-sdk";
+import { NETWORK_NAME } from "@constants";
+import { UnitNetwork } from "@constants/unitNetwork";
+import { Alchemy, BlockTag, Network, TokenBalance, Utils } from "alchemy-sdk";
 
 export class AlchemyService {
   alchemy: Alchemy;
@@ -7,23 +9,41 @@ export class AlchemyService {
 
   constructor({ network = Network.ETH_SEPOLIA }: { network: Network }) {
     const config = {
-      apiKey: API_KEYS.alchemy,
+      apiKey: API_KEYS.alchemy.ETHEREUM.SEPOLIA,
       network,
     };
     this.alchemy = new Alchemy(config);
     this.network = network;
   }
 
-  getAllTokens = async (address: string) => {
-    const balances = await this.alchemy.core.getTokenBalances(address);
+  getBalance = async (
+    address: string,
+    date: BlockTag | Promise<BlockTag> | undefined = "latest"
+  ) => {
+    const balance = Utils.formatEther(
+      await this.alchemy.core.getBalance(address, date)
+    );
+    return {
+      balance: Number(balance),
+      name: NETWORK_NAME.ETHEREUM,
+      symbol: UnitNetwork[NETWORK_NAME.ETHEREUM],
+    };
+  };
 
-    // Remove tokens with zero balance
-    const nonZeroBalances = balances.tokenBalances.filter(token => {
+  getAllTokensBalance = async (address: string) => {
+    return (await this.alchemy.core.getTokenBalances(address)).tokenBalances;
+  };
+
+  getAllTokensNonZeroBalance = async (address: string) => {
+    const balances = await this.getAllTokensBalance(address);
+    return balances.filter(token => {
       return Number(token.tokenBalance) > 0;
     });
-
-    return Promise.all(
-      nonZeroBalances.map(async token => {
+  };
+  getAllTokens = async (balances: TokenBalance[]) => {
+    const contractAddress = {} as Record<string, string>;
+    const res = await Promise.all(
+      balances.map(async token => {
         // Get balance of token
 
         // Get metadata of token
@@ -41,16 +61,18 @@ export class AlchemyService {
           throw new Error("Invalid token metadata or balance");
 
         // Compute token balance in human-readable format
-        const balance = (
-          Number(token.tokenBalance) / Math.pow(10, metadata.decimals)
-        ).toFixed(2);
+        const balance =
+          Number(token.tokenBalance) / Math.pow(10, metadata.decimals);
+        const symbol = (metadata.symbol as string).toUpperCase();
+        contractAddress[symbol] = token.contractAddress;
         return {
           name: metadata.name as string,
           balance,
-          symbol: metadata.symbol as string,
+          symbol,
         };
       })
     );
+    return { balances: res, contractAddress };
   };
 
   getNetwork(): Network {

@@ -1,28 +1,19 @@
 import { CRYPTO_UNITS } from "@constants/unit";
-import { Currency, getPrices } from "@services/prices";
+import { Currency, getCoinGeckoIdBySymbols } from "@services/prices";
 import { create } from "zustand";
+import { useWalletStore } from "./wallet";
 
 interface Price {
   symbol: CRYPTO_UNITS;
   price: number;
   percentage24h: number;
 }
-interface StatePrices {
+export interface StatePrices {
   prices: Record<CRYPTO_UNITS, Price>;
   isLoading: boolean;
 }
 const initialState: StatePrices = {
-  prices: Object.values(CRYPTO_UNITS).reduce(
-    (acc, symbol) => {
-      acc[symbol] = {
-        symbol,
-        price: 0,
-        percentage24h: 0,
-      };
-      return acc;
-    },
-    {} as Record<CRYPTO_UNITS, Price>
-  ),
+  prices: {} as Record<CRYPTO_UNITS, Price>,
   isLoading: false,
 };
 interface PriceStoreState {
@@ -34,11 +25,11 @@ export const usePriceStore = create<PriceStoreState>(set => ({
   getPrices: async currency => {
     set(state => ({ prices: { ...state.prices, isLoading: true } }));
     try {
-      const prices = await getPrices({
-        keys: Object.values(CRYPTO_UNITS),
-        percentage: true,
-        currency,
-      });
+      // Get the token symbols from the wallet store state to only fetch the prices of the tokens in the wallet
+      const tokenInBalance = useWalletStore
+        .getState()
+        .wallet.balance.map(token => token.symbol);
+      const prices = await getCoinGeckoIdBySymbols(tokenInBalance, currency);
       set(state => ({
         prices: {
           ...state.prices,

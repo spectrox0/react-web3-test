@@ -71,13 +71,14 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 } */
-.negative-percentage {
-  @apply text-red-500
+@layer base {
+  .negative-percentage {
+    @apply text-red-500;
+  }
+  .positive-percentage {
+    @apply text-green-500;
+  }
+  .neutral-percentage {
+    @apply text-gray-500;
+  }
 }
-.positive-percentage {
-  @apply text-green-500
-}
-.neutral-percentage {
-  @apply text-gray-500
-}
-```

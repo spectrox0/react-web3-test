@@ -1,3 +1,4 @@
+import { API_KEYS } from "@config";
 import { CRYPTO_UNITS } from "@constants/unit";
 import axios from "axios";
 import { CryptoCurrencyResponse } from "./price.type";
@@ -7,6 +8,9 @@ type ValueOf<T> = T[keyof T];
 export type Entries<T> = [keyof T, ValueOf<T>][];
 const client = axios.create({
   baseURL: "https://api.coingecko.com/api/v3/",
+  headers: {
+    "X-CoinAPI-Key": API_KEYS.coinGecko,
+  },
 });
 const CRYPTO_IDS = {
   [CRYPTO_UNITS.USDC]: "usd-coin",
@@ -39,9 +43,10 @@ export const getLists = async (currency = "usd") => {
 };
 
 export const getCoinGeckoIdBySymbols = async (
-  symbol: CRYPTO_UNITS[]
+  symbol: string[],
+  currency?: Currency
 ): Promise<{ unit: CRYPTO_UNITS; value: number; percentage: number }[]> => {
-  const list = await getLists();
+  const list = await getLists(currency);
   if (!Array.isArray(list)) return [];
   return list
     .filter(a => symbol.some(b => b.toLowerCase() === a.symbol))

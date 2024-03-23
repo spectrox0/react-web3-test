@@ -4,18 +4,25 @@ import React, { forwardRef, Ref, useMemo } from "react";
 import { PrimeBtnProps } from "./Btn.types";
 
 interface HiddenEyeBtnProps extends Omit<PrimeBtnProps, "icon" | "onClick"> {
-  open: boolean;
+  hidden: boolean;
   onClick: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const HiddenEyeBtn: FCC<HiddenEyeBtnProps> = forwardRef(
   (
-    { rounded = true, open, text = true, severity = "info", onClick, ...props },
+    {
+      rounded = true,
+      hidden = true,
+      text = true,
+      severity = "info",
+      onClick,
+      ...props
+    },
     ref: Ref<Button> | undefined
   ) => {
     const icon = useMemo(
-      () => (open ? "pi pi-eye" : "pi pi-eye-slash"),
-      [open]
+      () => (hidden ? "pi pi-eye-slash" : "pi pi-eye"),
+      [hidden]
     );
     const handleClick = () => onClick(prev => !prev);
     return (

@@ -16,6 +16,6 @@ export const percentageVariation = (value: number) => {
 
 export const percentageSymbol = {
   [STATE_VARIATION_PERCENTAGE.positive]: "+",
-  [STATE_VARIATION_PERCENTAGE.negative]: "-",
+  [STATE_VARIATION_PERCENTAGE.negative]: "",
   [STATE_VARIATION_PERCENTAGE.neutral]: "",
 };

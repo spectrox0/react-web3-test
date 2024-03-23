@@ -8,10 +8,10 @@ import { create } from "zustand";
 
 export interface Balance {
   name: string;
-  balance: string;
+  balance: number;
   symbol: string;
 }
-interface Wallet {
+export interface WalletState {
   network: NETWORK_NAME;
   networkEnvironment?: {
     environment: BLOCKCHAIN_ENVIRONMENT;
@@ -19,6 +19,7 @@ interface Wallet {
   };
   address?: string;
   balance: Balance[];
+  contractAddress: Record<string, string>;
   percentage24h: number;
   newAmount24h: number;
   isLoading: boolean;
@@ -28,16 +29,17 @@ interface WalletStoreState {
   decrement: (amount: number) => void;
   connectViaMetamask: () => Promise<void>;
   getAllTokens: (address: string) => Promise<Balance[]>;
-  wallet: Wallet;
+  wallet: WalletState;
 }
 
-const initialState: Wallet = {
+const initialState: WalletState = {
   network: NETWORK_NAME.ETHEREUM,
   networkEnvironment: {
     environment: BLOCKCHAIN_ENVIRONMENT.TESTNET,
     testnetNetwork: TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA,
   },
   address: undefined,
+  contractAddress: {},
   balance: [],
   isLoading: false,
   percentage24h: 0,
@@ -60,10 +62,17 @@ export const useWalletStore = create<WalletStoreState>(set => ({
       const alchemy = new AlchemyService({
         network: AlchemyNetwork.ETH_SEPOLIA,
       });
-      const balances = await alchemy.getAllTokens(address);
+      const tokenBalance = await alchemy.getAllTokensBalance(address);
+      const { balances, contractAddress } =
+        await alchemy.getAllTokens(tokenBalance);
       console.log(balances);
       set(state => ({
-        wallet: { ...state.wallet, balance: balances, isLoading: false },
+        wallet: {
+          ...state.wallet,
+          balance: balances,
+          contractAddress,
+          isLoading: false,
+        },
       }));
       return balances;
     } catch (error) {
@@ -90,10 +99,18 @@ export const useWalletStore = create<WalletStoreState>(set => ({
       const alchemy = new AlchemyService({
         network: AlchemyNetwork.ETH_SEPOLIA,
       });
-      const balances = await alchemy.getAllTokens(address);
-      console.log(balances);
+      const [{ balances, contractAddress }, balanceETH] = await Promise.all([
+        alchemy.getAllTokensBalance(address).then(alchemy.getAllTokens),
+        alchemy.getBalance(address),
+      ]);
       set(state => ({
-        wallet: { ...state.wallet, address, isLoading: false, balances },
+        wallet: {
+          ...state.wallet,
+          address,
+          isLoading: false,
+          balance: [balanceETH as Balance].concat(balances),
+          contractAddress,
+        },
       }));
     } catch (error) {
       set(state => ({ wallet: { ...state.wallet, isLoading: false } }));
