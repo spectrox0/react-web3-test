@@ -40,7 +40,9 @@
       "@providers": ["providers"],
       "@providers/*": ["providers/*"],
       "@models": ["models"],
-      "@models/*": ["models/*"]
+      "@models/*": ["models/*"],
+      "@config": ["config"],
+      "@config/*": ["config/*"]
     }
   },
 

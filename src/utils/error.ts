@@ -1,5 +1,4 @@
-import { showError } from "./message";
-
+import { showError } from "@utils/message";
 export const ERROR_MESSAGES = Object.freeze({
   NOT_SUPPORT: "Not support",
   NOT_CONNECTED: "Not connected",
