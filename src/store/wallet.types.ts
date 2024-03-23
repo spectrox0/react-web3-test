@@ -13,4 +13,5 @@ export interface HistoricalData {
   toAddress: string;
   urlExplorer: string;
   txHash: string;
+  receive: boolean;
 }
