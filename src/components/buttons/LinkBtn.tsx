@@ -1,12 +1,13 @@
 import type { FC } from "react";
+import { btnClassNames } from "./CustomBtn.types";
 import { LinkBtnProps } from "./LinkBtn.types";
 
 export const LinkBtn: FC<LinkBtnProps> = ({
   children,
   href,
   target = "_blank",
-  rel = "noreferrer",
-  color = "text",
+  rel = "noopener noreferrer",
+  color = "primary",
 }) => {
   return (
     <a
@@ -14,13 +15,16 @@ export const LinkBtn: FC<LinkBtnProps> = ({
       target={target}
       rel={rel}
       className={`
-      border border-${color} flex gap-0.5 justify-center items-center link-btn 
-      text-sm font-medium py-2 outline-0 ring-0 px-3 rounded-lg
-      bg-transparent [&:not(:disabled):active]:scale-[0.97]
+      flex gap-0.5 justify-center items-center link-btn
+      font-medium py-2 outline-0 ring-0 px-3 rounded-lg
       origin-center
+      bg-opacity-0
+      hover:bg-opacity-10
+      focus:bg-opacity-10
+      ${btnClassNames[color as keyof typeof btnClassNames]}
       transition-all
-       ease-in-out
-        duration-200`}
+      ease-in-out
+      duration-200`}
     >
       {children}
     </a>

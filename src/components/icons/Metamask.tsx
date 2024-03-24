@@ -1,6 +1,6 @@
 import { Icon } from "@types";
 
-export const MetamaskIcon: Icon = ({ width = 25, height = 25 }) => {
+export const MetamaskIcon: Icon = ({ width = 25, height = 25, className }) => {
   return (
     <svg
       version="1.1"
@@ -14,6 +14,7 @@ export const MetamaskIcon: Icon = ({ width = 25, height = 25 }) => {
       xmlSpace="preserve"
       width={width}
       height={height}
+      className={className}
     >
       <path
         fill="#E17726"

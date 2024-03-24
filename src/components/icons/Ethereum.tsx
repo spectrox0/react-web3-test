@@ -3,19 +3,20 @@ import { Icon } from "@types";
 export const EthereumIcon: Icon = ({
   width = 50,
   height = 50,
-  color: _color,
+  color = "#627EEA",
+  className = "",
 }) => {
   // const {
   //   palette: {
   //     ETHEREUM: { main },
   //   },
   // } = useTheme();
-  const color = _color;
   return (
     <svg
       height={height}
       viewBox="420.1 80.7 1079.8 1758.6"
       width={width}
+      className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
       <path d="m959.8 80.7-539.7 895.6 539.7-245.3z" fill={color} />

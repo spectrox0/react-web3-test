@@ -14,7 +14,6 @@ export const TransactionsView: FCC = () => {
 
   return (
     <div>
-      <h1>Transactions</h1>
       <TransactionHistoryTable historical={historicalData} />
     </div>
   );

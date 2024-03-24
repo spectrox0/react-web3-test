@@ -22,6 +22,8 @@ const CRYPTO_IDS = {
   [CRYPTO_UNITS.BNB]: "binancecoin",
   [CRYPTO_UNITS.BTC]: "bitcoin",
   [CRYPTO_UNITS.SOL]: "solana",
+  [CRYPTO_UNITS.ALGO]: "algorand",
+  [CRYPTO_UNITS.WBTC]: "wrapped-bitcoin",
 } as const satisfies Record<CRYPTO_UNITS, string>;
 
 export type Currency = "usd" | "eur";
@@ -53,7 +55,7 @@ export const getCoinGeckoIdBySymbols = async (
     .map(({ symbol, current_price, price_change_percentage_24h }) => ({
       unit: symbol.toUpperCase() as CRYPTO_UNITS,
       value: current_price,
-      percentage: price_change_percentage_24h,
+      percentage: price_change_percentage_24h / 100,
     }));
 };
 

@@ -1,20 +1,20 @@
-import { useTheme } from "@hooks";
 import { Icon } from "@types";
 
 export const UsdcIcon: Icon = ({
   width = 50,
   height = 50,
   color = "#2775ca",
+  className = "",
 }) => {
-  const { theme } = useTheme();
-  const fillColor =
-    theme === "light" ? "rgba(255,255,255 , 0.85)" : "rgba(27, 27, 27, 0.85)";
+  // const { theme } = useTheme();
+  const fillColor = "rgba(255,255,255 , 0.85)";
   return (
     <svg
       data-name="86977684-12db-4850-8f30-233a7c267d11"
       xmlns="http://www.w3.org/2000/svg"
       height={height}
       width={width}
+      className={className}
       viewBox="0 0 2000 2000"
     >
       <path

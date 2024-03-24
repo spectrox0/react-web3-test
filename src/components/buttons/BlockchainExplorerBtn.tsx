@@ -1,8 +1,8 @@
-import { FCC } from "@types";
+import { FC } from "react";
 import { LinkBtn } from "./LinkBtn";
 import { LinkBtnProps } from "./LinkBtn.types";
 
-export const BlockchainExplorerBtn: FCC<LinkBtnProps> = ({
+export const BlockchainExplorerBtn: FC<LinkBtnProps> = ({
   className = "rounded-full p-1 w-7 h-7",
   ...props
 }) => {

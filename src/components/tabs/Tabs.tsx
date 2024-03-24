@@ -7,15 +7,13 @@ interface TabProps {
 }
 export const TabsMenu: FCC<TabProps> = ({ tabs, setActiveTab, activeTab }) => {
   return (
-    <div className="flex gap-2 rounded-full">
+    <div className="inline-flex flex-wrap rounded-full border-2 border-gray-600 self-start p-0.5">
       {tabs.map((tab, index) => (
         <button
           key={index}
           onClick={() => setActiveTab(index)}
-          className={`px-4 py-2 rounded-full ${
-            activeTab === index
-              ? "bg-primary text-white"
-              : "bg-white text-primary"
+          className={`px-4 py-2 capitalize rounded-full transition-[bg] duration-75 ease-in-out font-semibold ${
+            activeTab === index ? "text-white bg-blue-500" : "text-gray-30"
           }`}
         >
           {tab}

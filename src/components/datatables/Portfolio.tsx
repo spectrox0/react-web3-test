@@ -1,8 +1,7 @@
-import { getIconUnit } from "@constants/iconUnit";
-import { CRYPTO_UNITS } from "@constants/unit";
+import { CryptoIcon } from "@components/icons/CryptoIcon";
+import { PercentageVariationText } from "@components/typography/PercentageVariation";
 import { CalculatedPortfolio, usePrices } from "@hooks/usePrices";
 import { formatCurrency } from "@utils/formatCurrency";
-import { percentageVariation } from "@utils/percentageVariation";
 import { Column, ColumnBodyOptions } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { FC, ReactNode } from "react";
@@ -13,80 +12,79 @@ type BodyTemplate =
       data: CalculatedPortfolio["wallet"]["balanceWithPrices"][number],
       options: ColumnBodyOptions
     ) => ReactNode);
-const tokenTemplate: BodyTemplate = rowData => {
-  const Icon = getIconUnit(rowData.symbol as CRYPTO_UNITS);
-  return (
-    <div className="flex items-center gap-3">
-      {Icon && <Icon width={35} height={35} />}
-      <div className="flex flex-col gap-1">
-        <p className="m-0 p-0 font-bold text-gray-950">{rowData.symbol}</p>
-        <p className="m-0 p-0 font-medium text-gray-700">{rowData.name}</p>
-      </div>
+const tokenTemplate: BodyTemplate = rowData => (
+  <div className="flex items-center gap-3">
+    <CryptoIcon width={35} height={35} symbol={rowData.symbol} />
+    <div className="flex flex-col">
+      <p className="m-0 p-0 font-bold ">{rowData.symbol}</p>
+      <p className="m-0 p-0 font-medium ">{rowData.name}</p>
     </div>
-  );
-};
+  </div>
+);
 
-const balanceTemplate: BodyTemplate = rowData => {
-  return (
-    <div className="flex flex-col justify-center gap-1">
-      <p className="m-0 p-0 font-bold text-gray-950">
-        {formatCurrency(rowData.value)}
-      </p>
-      <p className="m-0 p-0 font-medium text-gray-700">
-        {formatCurrency(rowData.balance)} {rowData.symbol}
-      </p>
-    </div>
-  );
-};
+const balanceTemplate: BodyTemplate = rowData => (
+  <div className="flex flex-col justify-center">
+    <p className="m-0 p-0 font-bold ">
+      {formatCurrency(rowData.value, "currency", "USD")}
+    </p>
+    <p className="m-0 p-0 font-medium">
+      {formatCurrency(rowData.balance)} {rowData.symbol}
+    </p>
+  </div>
+);
 
-const percentageChange24hTemplate: BodyTemplate = rowData => {
-  const variation = percentageVariation(rowData.percentage24h);
-  return (
-    <div className="flex items-center gap-3">
-      <p className={`m-0 p-0 font-bold ${variation}`}>
-        {rowData.percentage24h > 0 && "+"}
-        {rowData.percentage24h}%
-      </p>
-    </div>
-  );
-};
+const percentageChange24hTemplate: BodyTemplate = rowData => (
+  <div className="flex flex-col justify-center">
+    <p className="font-bold">
+      {formatCurrency(rowData.price, "currency", "USD")}
+    </p>
+    <PercentageVariationText value={rowData.percentage24h} />
+  </div>
+);
 
 export const PortfolioTable: FC = () => {
   const { wallet, totalAmount } = usePrices();
 
   const percentageOfTotalTemplate: BodyTemplate = rowData => {
-    const percentage =
-      totalAmount > 0 ? ((rowData.value / totalAmount) * 100).toFixed(2) : 0;
-    return <p className="font-semibold text-gray-950">%{percentage}</p>;
+    const percentage = formatCurrency(
+      totalAmount > 0 ? rowData.value / totalAmount : 0,
+      "percent"
+    );
+    return <p className="font-semibold ">{percentage}</p>;
   };
 
   return (
     <DataTable
       value={wallet.balanceWithPrices}
       sortMode="multiple"
-      tableStyle={{ minWidth: "50rem" }}
+      tableClassName={"custom-datatable"}
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-expect-error
+      rowClassName={"custom-datatable-row"}
     >
       <Column
         header="Token"
+        headerClassName="custom-datatable-header"
         body={tokenTemplate}
-        style={{ width: "25%" }}
       ></Column>
       <Column
         field="balance"
         header="Balance"
+        headerClassName="custom-datatable-header"
         sortable
         body={balanceTemplate}
-        style={{ width: "25%" }}
       ></Column>
       <Column
         header="Portfolio %"
+        field={"percentage24hr"}
+        headerClassName="custom-datatable-header"
+        sortable
         body={percentageOfTotalTemplate}
-        style={{ width: "25%" }}
       ></Column>
       <Column
         header="Price (24hr)"
+        headerClassName="custom-datatable-header"
         body={percentageChange24hTemplate}
-        style={{ width: "25%" }}
       ></Column>
     </DataTable>
   );

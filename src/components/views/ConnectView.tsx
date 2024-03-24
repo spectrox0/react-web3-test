@@ -6,7 +6,7 @@ import { FCC } from "@types";
 export const ConnectWalletView: FCC = () => {
   return (
     <Container className="flex flex-col gap-3 flex-1 place-items-center py-2 items-center justify-center">
-      <h1 className="text-lg text-zinc-200"> Connect Wallet 👇 </h1>
+      <h1 className="text-lg p-0 m-0 font-semibold"> Connect Wallet 👇 </h1>
       <MetamaskBtn className="max-w-56 mx-auto" />
     </Container>
   );

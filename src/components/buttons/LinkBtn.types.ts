@@ -1,5 +1,6 @@
-import { AnchorHTMLAttributes, ReactNode } from "react";
+import { AnchorHTMLAttributes } from "react";
+import { btnClassNames } from "./CustomBtn.types";
 
-export interface LinkBtnProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
-  children: ReactNode;
-}
+export type LinkBtnProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
+  color?: keyof typeof btnClassNames;
+};

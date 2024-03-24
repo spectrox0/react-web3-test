@@ -13,9 +13,18 @@ import {
   Utils,
 } from "alchemy-sdk";
 
-const NETWORK_MAP = {
+const NETWORK_MAP = Object.freeze({
   [Network.ETH_SEPOLIA]: TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA,
-} as const;
+} as const);
+
+const CATEGORY_TX_MAP = Object.freeze({
+  [AssetTransfersCategory.SPECIALNFT]: "special NFT",
+  [AssetTransfersCategory.EXTERNAL]: AssetTransfersCategory.EXTERNAL,
+  [AssetTransfersCategory.INTERNAL]: AssetTransfersCategory.INTERNAL,
+  [AssetTransfersCategory.ERC20]: "erc 20",
+  [AssetTransfersCategory.ERC721]: "erc 721",
+  [AssetTransfersCategory.ERC1155]: "erc 1155",
+} as const);
 
 export class AlchemyService {
   alchemy: Alchemy;
@@ -140,7 +149,7 @@ export class AlchemyService {
         return {
           date: date.timestamp * 1000,
           amount: Number(tx.value),
-          category: tx.category,
+          category: CATEGORY_TX_MAP[tx.category],
           symbol: (tx.asset as string).toUpperCase(),
           fromAddress: tx.from as string, // <-- if the from address is 0x0000000000000000000000000000000000000000 this mean that the transaction from airdrop or faucet
           toAddress: tx.to as string,

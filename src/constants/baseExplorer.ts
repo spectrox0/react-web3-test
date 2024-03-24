@@ -24,7 +24,7 @@ export const EXPLORER_BASE_URL = Object.freeze({
       },
       [TESTNET_NETWORKS.ETHEREUM.SEPOLIA]: {
         [EXPLORER_CATEGORY.TRANSACTION]:
-          "https://sepolia.etherscan.io/tx" as const,
+          "https://sepolia.etherscan.io/tx/" as const,
         [EXPLORER_CATEGORY.ADDRESS]:
           "https://sepolia.etherscan.io/address/" as const,
       },

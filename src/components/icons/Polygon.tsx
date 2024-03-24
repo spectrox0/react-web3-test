@@ -4,6 +4,7 @@ export const PolygonIcon: Icon = ({
   width = 50,
   height = 50,
   color = "#A263FF",
+  className = "",
 }) => {
   // const { palette } = useTheme();
   return (
@@ -14,6 +15,7 @@ export const PolygonIcon: Icon = ({
       data-name="Layer 1"
       fill={color}
       xmlns="http://www.w3.org/2000/svg"
+      className={className}
       viewBox="0 0 507.91 446.91"
     >
       <title>polygon-matic</title>

@@ -21,6 +21,7 @@ export const IconUnit = Object.freeze({
   [CRYPTO_UNITS.BNB]: BNBIcon,
   [CRYPTO_UNITS.BTC]: BitcoinIcon,
   [CRYPTO_UNITS.SOL]: SolanaIcon,
+  [CRYPTO_UNITS.ALGO]: SolanaIcon,
 } as const);
 
 export const getIconUnit = (unit: CRYPTO_UNITS) =>

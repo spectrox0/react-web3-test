@@ -1,16 +1,14 @@
 import { FCC } from "@types";
 import { copyToClipboard } from "@utils";
-import { PrimeBtn } from "./Btn";
-import { PrimeBtnProps } from "./Btn.types";
+import { IconBtn, IconBtnProps } from "./IconBtn";
 
 interface CopyClipboardBtnProps
-  extends Omit<PrimeBtnProps, "onClick" | "text"> {
+  extends Omit<IconBtnProps, "onClick" | "text" | "icon"> {
   text: string;
 }
 
-export const CopyClipboardBtn: FCC<CopyClipboardBtnProps> = ({
+export const ClipboardCopyBtn: FCC<CopyClipboardBtnProps> = ({
   text,
-  icon = "pi pi-copy",
   ...rest
 }) => {
   const handleCopy = async () => {
@@ -20,5 +18,5 @@ export const CopyClipboardBtn: FCC<CopyClipboardBtnProps> = ({
       console.error(e);
     }
   };
-  return <PrimeBtn icon={icon} onClick={handleCopy} {...rest} />;
+  return <IconBtn icon={"pi pi-copy"} onClick={handleCopy} {...rest} />;
 };

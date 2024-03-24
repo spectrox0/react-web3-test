@@ -18,7 +18,7 @@ export const MethodBtn: FCC<Props> = ({
   return (
     <CustomBtn
       color={color}
-      className={`flex items-center gap-1.5 font-bold ${className}`}
+      className={`flex items-center gap-1.5 font-semibold ${className}`}
       onClick={onClick}
     >
       <Icon width={22} height={22} />

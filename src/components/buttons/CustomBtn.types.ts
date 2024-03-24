@@ -1,7 +1,7 @@
 import { ButtonHTMLAttributes } from "react";
 
 export const btnClassNames = {
-  primary: "border-amber-400 text-amber-400 bg-amber-400 fill-amber-400",
+  primary: "border-blue-400 text-blue-400 bg-blue-400 fill-blue-400",
   error: "border-rose-700 text-rose-700 bg-rose-700 fill-rose-700",
   success: "border-green-500 text-green-500 bg-green-500 fill-green-700",
   text: "border-neutral-400 text-neutral-400 bg-neutral-400 fill-neutral-400",
@@ -11,4 +11,5 @@ export interface CustomBtnProps
   extends ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
   color?: keyof typeof btnClassNames;
+  loading?: boolean;
 }

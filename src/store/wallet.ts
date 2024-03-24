@@ -107,7 +107,13 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
       });
       const historical = await alchemy.getHistoricalData(address);
 
-      console.log("Historico", historical);
+      set(state => ({
+        wallet: {
+          ...state.wallet,
+          historical: { isLoading: false, historical },
+        },
+      }));
+      return historical;
     } catch (error) {
       set(state => ({
         wallet: {
@@ -120,7 +126,6 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
           ? error.message
           : "Error fetching historical data."
       );
-      return [];
     }
   },
   connectViaMetamask: async () => {
