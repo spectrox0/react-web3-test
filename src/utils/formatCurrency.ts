@@ -8,6 +8,6 @@ export const formatCurrency = (
     style,
     currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: style === "percent" ? 2 : 5,
   }).format(value);
 };

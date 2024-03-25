@@ -162,7 +162,23 @@ export class AlchemyService {
       // In this case, we are interested in both the transactions that the user has received and the transactions that the user has sent
       // So we concatenate the two arrays
       // We suppose that the user has received the transaction if the toAddress is equal to the user's address
-      .then(([receive, send]) => receive.transfers.concat(send.transfers));
+      .then(([receive, send]) => {
+        return receive.transfers
+          .map(tx => ({
+            ...tx,
+            receive: true,
+            addr: tx.from,
+            value: Number(tx.value),
+          }))
+          .concat(
+            send.transfers.map(tx => ({
+              ...tx,
+              receive: false,
+              addr: tx.to as string,
+              value: -Number(tx.value),
+            }))
+          );
+      });
 
     return Promise.all(
       data.map(async tx => {
@@ -175,7 +191,8 @@ export class AlchemyService {
           symbol: (tx.asset as string).toUpperCase(),
           fromAddress: tx.from as string, // <-- if the from address is 0x0000000000000000000000000000000000000000 this mean that the transaction from airdrop or faucet
           toAddress: tx.to as string,
-          receive: tx.to === address,
+          receive: tx.receive,
+          addr: tx.addr,
           urlExplorer,
           txHash: tx.hash,
         };

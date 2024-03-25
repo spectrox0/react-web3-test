@@ -5,7 +5,7 @@ import { FCC } from "@types";
 import { createContext, useEffect, useMemo, useRef } from "react";
 
 const currency = "usd";
-const secondsTimeToRefresh = 60;
+const secondsTimeToRefresh = 240;
 interface PriceContextProps {
   prices: StatePrices;
   wallet: WalletState & {

@@ -3,6 +3,7 @@ import { NETWORK_NAME } from "@constants";
 import { CRYPTO_UNITS } from "@constants/unit";
 import { getTokens } from "@utils/getTokens";
 import axios from "axios";
+import localforage from "localforage";
 import { CryptoCurrencyResponse } from "./price.type";
 
 type ValueOf<T> = T[keyof T];
@@ -87,12 +88,15 @@ export const getPrices = async ({
         idsMap[res.symbol.toUpperCase()] = res.coingeckoId as string;
       });
   }
-  console.log(idsMap);
   const cryptoIds = keys.map(key => idsMap[key]).join(",");
   const endpoint = `simple/price?ids=${cryptoIds}&vs_currencies=${currency}&include_24hr_change=${percentage}`;
-  const res = await client.get<Response>(endpoint).catch(() => undefined);
-  if (!res) return [];
-  const data = res.data;
+  const data = await client
+    .get<Response>(endpoint)
+    .then(res =>
+      localforage.setItem<Response>("prices", res.data).then(res => res)
+    )
+    .catch(() => localforage.getItem<Response>("prices"));
+  if (!data) return [];
   return (Object.entries(data) as Entries<Response>).map(([key, value]) => {
     return {
       unit: Object.entries(idsMap).find(

@@ -5,8 +5,8 @@ import { useEffect } from "react";
 
 export const TransactionsView: FCC = () => {
   const getHistoricalData = useWalletStore(state => state.getHistoricalData);
-  const historicalData = useWalletStore(
-    state => state.wallet.historical.historical
+  const { historical, isLoading } = useWalletStore(
+    state => state.wallet.historical
   );
   useEffect(() => {
     getHistoricalData();
@@ -14,7 +14,7 @@ export const TransactionsView: FCC = () => {
 
   return (
     <div>
-      <TransactionHistoryTable historical={historicalData} />
+      <TransactionHistoryTable loading={isLoading} historical={historical} />
     </div>
   );
 };

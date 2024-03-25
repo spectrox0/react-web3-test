@@ -1,30 +1,50 @@
 import { FCC } from "@types";
 import { Toast, ToastMessage } from "primereact/toast";
-import { createContext, useLayoutEffect, useMemo, useRef } from "react";
+import { createContext, useCallback, useMemo, useRef } from "react";
 
 type ShowToast = (toastObject: ToastMessage | ToastMessage[]) => void;
-export const ToastContext = createContext<{ showToast: ShowToast }>({
+export const ToastContext = createContext<{
+  showToast: ShowToast;
+  showSuccess: (message: string) => void;
+  showError: (message: string) => void;
+}>({
   showToast: () => undefined,
+  showSuccess: () => undefined,
+  showError: () => undefined,
 });
 
 export const ToastProvider: FCC = ({ children }) => {
   const toast = useRef<Toast>(null);
 
-  const showToast = (toastObject: ToastMessage | ToastMessage[]) => {
-    if (!toast.current) return;
-    toast.current.show(toastObject);
-  };
+  const showToast = useCallback(
+    (toastObject: ToastMessage | ToastMessage[]) => {
+      if (!toast.current) return;
+      toast.current.show(toastObject);
+    },
+    [toast]
+  );
 
-  useLayoutEffect(() => {
-    // Save the reference toast instance to the window object to use it globally in the app outside of the provider
-    window.primeToast = toast.current;
-  }, []);
+  const showError = useCallback(
+    (message: string) => {
+      showToast({ severity: "error", summary: "Error", detail: message });
+    },
+    [showToast]
+  );
+
+  const showSuccess = useCallback(
+    (message: string) => {
+      showToast({ severity: "success", summary: "Success", detail: message });
+    },
+    [showToast]
+  );
 
   const state = useMemo(
     () => ({
       showToast,
+      showSuccess,
+      showError,
     }),
-    []
+    [showError, showToast, showSuccess]
   );
 
   return (

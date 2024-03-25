@@ -31,7 +31,7 @@ export const TestnetNetworkSelect: FC = () => {
   };
   return showNetwork ? (
     <CustomSelect
-      disabled={isLoading}
+      disabled={true}
       value={networkEnvironment.testnetNetwork}
       options={testnetNetworks}
       onChange={onChangeTestnetNetwork}

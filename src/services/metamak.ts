@@ -14,6 +14,7 @@ import { WEI_DECIMAL } from "@constants/weiDecimal";
 import { ABI_ERC20, AppError } from "@utils";
 import {
   BrowserProvider,
+  Contract,
   ethers,
   formatEther,
   formatUnits,
@@ -150,11 +151,16 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     from: string;
     value: string | number;
   }) => {
-    const gasLimit = await this.provider.estimateGas({
-      to,
-      from,
-      value: parseEther(value.toString()),
-    });
+    const gasLimit = await this.provider
+      .estimateGas({
+        to,
+        from,
+        value: parseEther(value.toString()),
+      })
+      .catch(error => {
+        console.error("Error estimating gas");
+      });
+    console.log(gasLimit);
     return gasLimit;
   };
 
@@ -175,24 +181,34 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     });
   };
 
-  estimateGasOfTxOfToken = async (tx: TransactionRequest, contract: string) => {
-    const signer = await this.provider.getSigner();
-    const contractInstance = new ethers.Contract(contract, ABI_ERC20, signer);
-    const decimals = await contractInstance.decimals();
+  getSigner = async () => {
+    return this.provider.getSigner();
+  };
+
+  sendTokenTransaction = async (
+    tx: TransactionRequest,
+    contractAddr: string
+  ): Promise<string> => {
+    const signer = await this.getSigner();
+    const contract = new Contract(contractAddr, ABI_ERC20, signer);
+    const decimals: number = await contract.decimals();
     if (!tx.value) throw new Error("Value is required");
     const amount = parseUnits(tx.value.toString(), decimals);
-    // Construye la llamada al contrato sin ejecutarla
-    const transaction = await contractInstance.populateTransaction.transfer(
-      tx.to,
-      amount
-    );
-
-    // Usa el proveedor para estimar el gas de la transacción
-    const estimatedGas = await signer.estimateGas({
-      ...transaction,
-      from: await signer.getAddress(), // La dirección desde la que se firma la transacción
-    });
+    const txResponse = await contract.transfer(tx.to, amount);
+    return txResponse.hash;
   };
+
+  estimateGasOfTxOfToken = async () =>
+    // tx: TransactionRequest,
+    // contract: string
+    {
+      // const signer = await this.getSigner();
+      // const contractInstance = new Contract(contract, ABI_ERC20, signer);
+      // const decimals = await contractInstance.decimals();
+      // if (!tx.value) throw new Error("Value is required");
+      //
+      return undefined;
+    };
 
   getCurrentFeeData = async () => {
     const feeData = await this.provider.getFeeData();
@@ -205,9 +221,13 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
   };
 
   getGasPrice = async () => {
-    const feeData = await this.provider.getFeeData();
-    if (!feeData.gasPrice) throw new Error("Error getting gas price");
-    return formatUnits(feeData.gasPrice, "gwei");
+    try {
+      const feeData = await this.provider.getFeeData();
+      if (!feeData.gasPrice) throw new Error("Error getting gas price");
+      return formatUnits(feeData.gasPrice, "gwei");
+    } catch {
+      throw new Error("Error getting gas price");
+    }
   };
 
   static initialize({ blockchain, environment, testnetNetwork }: Constructor) {
@@ -329,12 +349,24 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     });
   };
 
-  accountChanged = (callback: (account: string) => void) => {
+  onAccountChanged = (callback: (account: string) => void) => {
     window.ethereum.on("accountsChanged", callback);
   };
 
-  chainChanged = (callback: (chainId: string) => void) => {
+  removeAccountChanged = (callback: (account: string) => void) => {
+    window.ethereum.removeListener("accountsChanged", callback);
+  };
+
+  onChainChanged = (callback: (chainId: string) => void) => {
     window.ethereum.on("chainChanged", callback);
+  };
+
+  removeChainChanged = (callback: (chainId: string) => void) => {
+    window.ethereum.removeListener("chainChanged", callback);
+  };
+
+  removeDisconnect = (callback: () => void) => {
+    window.ethereum.removeListener("disconnect", callback);
   };
 
   onDisconnect = (callback: () => void) => {
@@ -368,13 +400,20 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     return signedTx;
   };
 
-  sendTransaction = async ({ chainId = this.chainId, ...params }) => {
-    const { hash }: TransactionResponse = await this.provider.send(
-      "eth_sendTransaction",
-      [{ chainId, ...params }]
-    );
-    return hash as string;
-  };
+  sendTransaction: ExternalConnectMethod<EXTERNAL_METHODS.METAMASK>["sendTransaction"] =
+    async ({ chainId = this.chainId, value, ...params }) => {
+      // const { hash }: TransactionResponse = await provider.send(
+      //   "eth_sendTransaction",
+      //   [{ chainId, ...params }]
+      // );
+      const signer = await this.provider.getSigner();
+      const { hash }: TransactionResponse = await signer.sendTransaction({
+        chainId,
+        value: parseEther((value as number).toString()),
+        ...params,
+      });
+      return hash as string;
+    };
 
   getWalletInfo = async () => {
     try {

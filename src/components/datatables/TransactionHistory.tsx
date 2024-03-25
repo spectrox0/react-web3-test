@@ -14,6 +14,7 @@ import {
 import { FC, ReactNode } from "react";
 
 interface Props {
+  loading: boolean;
   historical: HistoricalData[];
 }
 
@@ -80,15 +81,19 @@ const DayHeaderTemplate: HeaderGroupTemplate = rowData => {
     </div>
   );
 };
-export const TransactionHistoryTable: FC<Props> = ({ historical }) => {
+export const TransactionHistoryTable: FC<Props> = ({
+  historical,
+  loading = false,
+}) => {
   return (
     <DataTable
       value={historical.map(item => ({
         ...item,
         day: formatDateUTC(item.date),
       }))}
-      sortMode="multiple"
+      sortMode="single"
       rowGroupMode="subheader"
+      loading={loading}
       sortField="date"
       // stripedRows={false}
       // size={"small"}
@@ -98,7 +103,7 @@ export const TransactionHistoryTable: FC<Props> = ({ historical }) => {
       //@ts-expect-error
       rowClassName={"custom-datatable-row"}
       rowGroupHeaderTemplate={DayHeaderTemplate}
-      sortOrder={1}
+      sortOrder={-1}
     >
       <Column
         header="Operation"
@@ -108,7 +113,6 @@ export const TransactionHistoryTable: FC<Props> = ({ historical }) => {
       <Column
         header="Address"
         headerClassName="custom-datatable-header"
-        sortable
         body={AddressTemplate}
       />
       <Column

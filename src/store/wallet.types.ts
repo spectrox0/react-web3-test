@@ -10,6 +10,7 @@ export interface HistoricalData {
   category: string;
   symbol: string;
   fromAddress: string;
+  addr: string;
   toAddress: string;
   urlExplorer: string;
   txHash: string;

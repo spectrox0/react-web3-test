@@ -7,13 +7,13 @@ interface Props {
 }
 export const TransactionTableIcon: FC<Props> = ({ symbol, receive }) => {
   return (
-    <div className="relative w-7 h-7 rounded-full flex items-center justify-center bg-slate-200 border border-slate-500">
+    <div className="relative flex size-7 items-center justify-center rounded-full border border-slate-500 bg-slate-200">
       <CryptoIcon
         symbol={symbol}
-        className="z-0 absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full"
+        className="absolute left-0 top-0 z-0 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full"
       />
       <i
-        className={`text-slate-500 text-xs pi ${receive ? "pi-arrow-down-left" : "pi-arrow-up-right z-10"}`}
+        className={`pi z-10 text-xs text-slate-500 ${receive ? "pi-arrow-down-left" : "pi-arrow-up-right "}`}
       />
     </div>
   );

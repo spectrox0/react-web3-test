@@ -4,6 +4,7 @@ import {
   defaultTestnetNetwork,
   TestnetNetwork,
 } from "@constants/testnetNetworks";
+import { TransactionRequest } from "ethers";
 
 export type ConstructorExternalMethod<
   T extends EXTERNAL_METHODS,
@@ -55,15 +56,8 @@ export abstract class ExternalConnectMethod<
 
   abstract getSignature: () => Promise<string | undefined> | string | undefined;
 
-  abstract sendTransaction: (params: {
-    value?: string | number;
-    to?: string;
-    data?: string;
-    from?: string;
-    chainId?: string;
-    gasLimit?: string;
-    nonce?: string | number;
-    maxFeePerGas: string;
-    maxPriorityFeePerGas?: string;
-  }) => Promise<unknown> | unknown;
+  abstract sendTransaction: (
+    params: TransactionRequest & { value: number },
+    symbol?: string
+  ) => Promise<string> | string;
 }
