@@ -1,9 +1,10 @@
 import { BLOCKCHAIN_ENVIRONMENT, NETWORK_NAME } from "@constants";
+import { chainId } from "@constants/chainIds";
 import { TESTNET_NETWORKS, TestnetNetwork } from "@constants/testnetNetworks";
 import { UnitNetwork } from "@constants/unitNetwork";
 import { MetamaskClassService } from "@services";
 import { AlchemyService } from "@services/alchemy";
-import { showError } from "@utils";
+import { AppError, showError } from "@utils";
 import { JsonRpcSigner } from "ethers";
 import { createRef } from "react";
 import { create } from "zustand";
@@ -49,6 +50,11 @@ interface WalletStoreState {
   estimateGas: (payload: SendTokensPayload) => Promise<string | void>;
   getMetamaskInstance: () => MetamaskClassService;
   getAlchemyInstance: () => AlchemyService;
+  onDisconnectMetamask: () => void;
+  onAccountsChanged: (accounts: string[]) => void;
+  onChainChanged: (chainId: string) => void;
+  subscribeMetamaskEvents: () => void;
+  unSubscribeMetamaskEvents: () => void;
   wallet: WalletState;
 }
 
@@ -82,6 +88,60 @@ const initialState: WalletState = {
 
 export const useWalletStore = create<WalletStoreState>((set, get) => ({
   wallet: initialState,
+  onAccountsChanged: async accounts => {
+    if (accounts.length > 0) {
+      const alchemy = get().getAlchemyInstance();
+      const account = accounts[0];
+      const [{ balance, contractAddress }, historical] = await Promise.all([
+        alchemy.getAllBalances(account),
+        alchemy.getHistoricalData(account),
+      ]);
+      set(state => ({
+        wallet: {
+          ...state.wallet,
+          address: account,
+          historical: { isLoading: false, historical },
+          balance,
+          contractAddress,
+          isLoading: false,
+        },
+      }));
+    }
+  },
+  onChainChanged: async () => {
+    const metamask = get().getMetamaskInstance();
+    const id = await metamask.getChainId();
+    if (id !== chainId.TESTNET.ETHEREUM.SEPOLIA)
+      throw new AppError(
+        "Please switch to Sepolia network. Other networks are not supported."
+      );
+  },
+  onDisconnectMetamask: () => {
+    set(state => ({
+      wallet: {
+        ...state.wallet,
+        address: undefined,
+        balance: [],
+        contractAddress: {},
+        historical: {
+          isLoading: false,
+          historical: [],
+        },
+      },
+    }));
+  },
+  subscribeMetamaskEvents: () => {
+    const metamask = get().getMetamaskInstance();
+    metamask.onDisconnect(get().onDisconnectMetamask);
+    metamask.onAccountsChanged(get().onAccountsChanged);
+    metamask.onChainChanged(get().onChainChanged);
+  },
+  unSubscribeMetamaskEvents: () => {
+    const metamask = get().getMetamaskInstance();
+    metamask.removeDisconnect(get().onDisconnectMetamask);
+    metamask.removeAccountsChanged(get().onAccountsChanged);
+    metamask.removeChainChanged(get().onChainChanged);
+  },
   getMetamaskInstance: () => {
     if (metamaskInstanceRef.current) return metamaskInstanceRef.current;
     metamaskInstanceRef.current = MetamaskClassService.initialize({
@@ -103,7 +163,10 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
       ? network
       : networkEnvironment.testnetNetwork;
   },
-  unsubscribeMetamaskEvents: () => {},
+  unsubscribeMetamaskEvents: () => {
+    const metamask = get().getMetamaskInstance();
+    metamask.removeDisconnect;
+  },
   estimateGas: async ({ address: toAddr, amount, token }) => {
     const { address: addr, network } = get().wallet;
     if (!addr || !toAddr || !amount || !token) return;
@@ -200,37 +263,6 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
           isLoading: false,
         },
       }));
-
-      metamask.onDisconnect(async () => {
-        set(state => ({
-          wallet: {
-            ...state.wallet,
-            address: undefined,
-            balance: [],
-            contractAddress: {},
-            historical: {
-              isLoading: false,
-              historical: [],
-            },
-          },
-        }));
-      });
-      metamask.accountChanged(async accounts => {
-        if (accounts.length > 0) {
-          const account = accounts[0];
-          const { balance, contractAddress } =
-            await alchemy.getAllBalances(account);
-          set(state => ({
-            wallet: {
-              ...state.wallet,
-              address: account,
-              balance,
-              contractAddress,
-              isLoading: false,
-            },
-          }));
-        }
-      });
     } catch (error) {
       showError(error instanceof Error ? error.message : "");
       set(state => ({ wallet: { ...state.wallet, isLoading: false } }));

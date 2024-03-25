@@ -2,22 +2,14 @@ import { Container } from "@components/layouts/Container";
 import { MainLayout } from "@components/layouts/MainLayout";
 import { HomeView } from "@components/tabs/Home";
 import { ConnectWalletView } from "@components/views/ConnectView";
+import { useMetamask } from "@hooks/useMetamask";
 import { PriceProvider } from "@providers/PriceProvider";
 import { useWalletStore } from "@store";
 import { ProgressSpinner } from "primereact/progressspinner";
-import { useEffect, useState } from "react";
 
 function App() {
   const { address } = useWalletStore(state => state.wallet);
-  const [loading, setLoading] = useState(true);
-  const checkInitialConnectionMetamask = useWalletStore(
-    state => state.checkInitialConnectionMetamask
-  );
-  useEffect(() => {
-    Promise.all([checkInitialConnectionMetamask()]).then(() =>
-      setLoading(false)
-    );
-  }, [checkInitialConnectionMetamask]);
+  const { loading } = useMetamask();
   return (
     <MainLayout>
       {loading ? (

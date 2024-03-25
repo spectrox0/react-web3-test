@@ -14,6 +14,7 @@ export const rpcUrls = Object.freeze({
         // The first RPC URL is the one that will be used by default in the app
         // The alchemy RPC is the most reliable one
         `https://eth-sepolia.g.alchemy.com/v2/${API_KEYS.alchemy.ETHEREUM.SEPOLIA}`,
+        `wss://eth-sepolia.g.alchemy.com/v2/${API_KEYS.alchemy.ETHEREUM.SEPOLIA}`,
         "https://ethereum-sepolia-rpc.publicnode.com",
         "https://endpoints.omniatech.io/v1/eth/sepolia/public",
       ],
@@ -28,6 +29,7 @@ export const rpcUrls = Object.freeze({
   [BLOCKCHAIN_ENVIRONMENT.MAINNET]: {
     [NETWORK_NAME.ETHEREUM]: [
       `https://eth-sepolia.g.alchemy.com/v2/${API_KEYS.alchemy.ETHEREUM.MAINNET}`,
+      `wss://eth-sepolia.g.alchemy.com/v2/${API_KEYS.alchemy.ETHEREUM.MAINNET}`,
       "https://ethereum.publicnode.com",
       "https://eth.llamarpc.com",
       "https://rpc.mevblocker.io",

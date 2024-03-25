@@ -49,6 +49,16 @@ type Balance = {
   decimals: number;
   name: string;
 };
+
+type CallbackTransfer = ({
+  from,
+  to,
+  value,
+}: {
+  from: string;
+  to: string;
+  value: string;
+}) => void;
 export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS.METAMASK> {
   readonly provider: BrowserProvider;
 
@@ -151,16 +161,11 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     from: string;
     value: string | number;
   }) => {
-    const gasLimit = await this.provider
-      .estimateGas({
-        to,
-        from,
-        value: parseEther(value.toString()),
-      })
-      .catch(error => {
-        console.error("Error estimating gas");
-      });
-    console.log(gasLimit);
+    const gasLimit = await this.provider.estimateGas({
+      to,
+      from,
+      value: parseEther(value.toString()),
+    });
     return gasLimit;
   };
 
@@ -177,7 +182,13 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
       this.estimateGasOfTx({ to, from, value }),
       this.getCurrentFeeData(),
     ]).then(([gasLimit, { gasPrice }]) => {
-      return { gasLimit, gasPrice, gasRate: formatEther(gasLimit * gasPrice) };
+      return {
+        gasLimit,
+        gasPrice,
+        gasRate: gasLimit
+          ? formatEther((gasLimit as bigint) * gasPrice)
+          : undefined,
+      };
     });
   };
 
@@ -243,6 +254,32 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     unit: CRYPTO_UNITS
   ): unit is AvailableToken<NETWORK_NAME.ETHEREUM> => {
     return AVAILABLE_TOKEN[this.blockchain].some(value => value === unit);
+  };
+
+  subscribeBlock = async (callback: (blockNumber: number) => void) => {
+    this.provider.on("block", callback);
+  };
+
+  unSubscribeBlock = async () => {
+    this.provider.removeAllListeners("block");
+  };
+
+  subscribeContract = async (contract: string, callback: CallbackTransfer) => {
+    const contractInstance = new ethers.Contract(
+      contract,
+      ABI_ERC20,
+      this.provider
+    );
+    contractInstance.on("Transfer", callback);
+  };
+
+  unSubscribeContract = async (contract: string) => {
+    const contractInstance = new ethers.Contract(
+      contract,
+      ABI_ERC20,
+      this.provider
+    );
+    contractInstance.removeAllListeners("Transfer");
   };
 
   getContractAddress = (
@@ -349,11 +386,11 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     });
   };
 
-  onAccountChanged = (callback: (account: string) => void) => {
+  onAccountsChanged = (callback: (accounts: string[]) => void) => {
     window.ethereum.on("accountsChanged", callback);
   };
 
-  removeAccountChanged = (callback: (account: string) => void) => {
+  removeAccountsChanged = (callback: (accounts: string[]) => void) => {
     window.ethereum.removeListener("accountsChanged", callback);
   };
 
@@ -398,6 +435,11 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
   signTransaction = async (tx: ethers.TransactionRequest) => {
     const signedTx = await this.provider.send("eth_signTransaction", [tx]);
     return signedTx;
+  };
+
+  getChainId = async () => {
+    const chainId = await this.provider.getNetwork();
+    return Number(chainId.chainId);
   };
 
   sendTransaction: ExternalConnectMethod<EXTERNAL_METHODS.METAMASK>["sendTransaction"] =
