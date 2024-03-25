@@ -30,7 +30,7 @@ type HeaderGroupTemplate = DataTableRowGroupHeaderTemplateType<
 const AmountTemplate: BodyTemplate = rowData => {
   return (
     <div className="flex items-center gap-3">
-      <CryptoIcon symbol={rowData.symbol} className="w-7 h-7" />
+      <CryptoIcon symbol={rowData.symbol} className="size-7" />
       <div className="flex flex-col">
         <PercentageVariationText value={rowData.amount} format="decimal" />
         <p className="m-0 p-0 font-semibold">{rowData.symbol}</p>
@@ -56,9 +56,9 @@ const AddressTemplate: BodyTemplate = rowData => {
   const address = rowData.receive ? rowData.fromAddress : rowData.toAddress;
   const text = Number(address) ? truncateAddr(address) : "Minted";
   return (
-    <div className="flex gap-1 items-center ">
+    <div className="flex items-center gap-1 ">
       {Number(address) ? <ClipboardCopyBtn text={address} /> : null}
-      <p className="m-0 p-0 font-bold text-base">{text}</p>
+      <p className="m-0 p-0 text-base font-bold">{text}</p>
     </div>
   );
 };
@@ -67,7 +67,7 @@ const ExplorerTemplate: BodyTemplate = rowData => {
   return (
     <div className="flex justify-end  gap-1">
       <BlockchainExplorerBtn
-        className="self-end mr-auto"
+        className="mr-auto self-end"
         href={rowData.urlExplorer}
       />
     </div>
@@ -76,7 +76,7 @@ const ExplorerTemplate: BodyTemplate = rowData => {
 const DayHeaderTemplate: HeaderGroupTemplate = rowData => {
   return (
     <div className="flex items-center">
-      <p className="m-0 p-0 font-semibold text-lg">{rowData.day}</p>
+      <p className="m-0 p-0 text-lg font-semibold">{rowData.day}</p>
     </div>
   );
 };

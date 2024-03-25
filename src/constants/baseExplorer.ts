@@ -11,36 +11,15 @@ export enum EXPLORER_CATEGORY {
 // Avoid magic strings
 export const EXPLORER_BASE_URL = Object.freeze({
   [NETWORK_NAME.ETHEREUM]: {
-    [BLOCKCHAIN_ENVIRONMENT.MAINNET]: {
-      [EXPLORER_CATEGORY.TRANSACTION]: "https://etherscan.io/tx/" as const,
-      [EXPLORER_CATEGORY.ADDRESS]: "https://etherscan.io/address/" as const,
-    },
+    [BLOCKCHAIN_ENVIRONMENT.MAINNET]: "https://etherscan.io/",
     [BLOCKCHAIN_ENVIRONMENT.TESTNET]: {
-      [TESTNET_NETWORKS.ETHEREUM.GOERLI]: {
-        [EXPLORER_CATEGORY.TRANSACTION]:
-          "https://goerli.etherscan.io/tx/" as const,
-        [EXPLORER_CATEGORY.ADDRESS]:
-          "https://goerli.etherscan.io/address/" as const,
-      },
-      [TESTNET_NETWORKS.ETHEREUM.SEPOLIA]: {
-        [EXPLORER_CATEGORY.TRANSACTION]:
-          "https://sepolia.etherscan.io/tx/" as const,
-        [EXPLORER_CATEGORY.ADDRESS]:
-          "https://sepolia.etherscan.io/address/" as const,
-      },
+      [TESTNET_NETWORKS.ETHEREUM.GOERLI]: "https://goerli.etherscan.io/",
+      [TESTNET_NETWORKS.ETHEREUM.SEPOLIA]: "https://sepolia.etherscan.io/",
     },
   },
 
   [NETWORK_NAME.POLYGON]: {
-    [BLOCKCHAIN_ENVIRONMENT.TESTNET]: {
-      [EXPLORER_CATEGORY.TRANSACTION]:
-        "https://mumbai.polygonscan.com/tx/" as const,
-      [EXPLORER_CATEGORY.ADDRESS]:
-        "https://mumbai.polygonscan.com/address/" as const,
-    },
-    [BLOCKCHAIN_ENVIRONMENT.MAINNET]: {
-      [EXPLORER_CATEGORY.TRANSACTION]: "https://polygonscan.com/tx/" as const,
-      [EXPLORER_CATEGORY.ADDRESS]: "https://polygonscan.com/address/" as const,
-    },
+    [BLOCKCHAIN_ENVIRONMENT.TESTNET]: "https://mumbai.polygonscan.com/",
+    [BLOCKCHAIN_ENVIRONMENT.MAINNET]: "https://polygonscan.com/",
   },
 });

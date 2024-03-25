@@ -1,9 +1,10 @@
 import { BLOCKCHAIN_ENVIRONMENT, NETWORK_NAME } from "@constants";
-import { TESTNET_NETWORKS, TestnetNetworks } from "@constants/testnetNetworks";
+import { TESTNET_NETWORKS, TestnetNetwork } from "@constants/testnetNetworks";
+import { UnitNetwork } from "@constants/unitNetwork";
 import { MetamaskClassService } from "@services";
 import { AlchemyService } from "@services/alchemy";
-import { showError } from "@utils";
-import { Network as AlchemyNetwork } from "alchemy-sdk";
+import { AppError, showError } from "@utils";
+import { JsonRpcSigner } from "ethers";
 import { create } from "zustand";
 import { Balance, HistoricalData } from "./wallet.types";
 
@@ -11,11 +12,17 @@ interface HistoricalState {
   isLoading: boolean;
   historical: HistoricalData[];
 }
+
+interface SendTokensPayload {
+  address: string;
+  amount: number;
+  token: string;
+}
 export interface WalletState {
   network: NETWORK_NAME;
-  networkEnvironment?: {
+  networkEnvironment: {
     environment: BLOCKCHAIN_ENVIRONMENT;
-    testnetNetwork?: TestnetNetworks<NETWORK_NAME.ETHEREUM>;
+    testnetNetwork: TestnetNetwork[NETWORK_NAME.ETHEREUM];
   };
   address?: string;
   balance: Balance[];
@@ -29,10 +36,23 @@ interface WalletStoreState {
   increment: (amount: number) => void;
   decrement: (amount: number) => void;
   connectViaMetamask: () => Promise<void>;
+  checkInitialConnectionMetamask: () => Promise<void>;
   getAllTokens: (address: string) => Promise<Balance[] | void | undefined>;
   getHistoricalData: () => Promise<HistoricalData[] | void | undefined>;
+  getGasPrice: () => Promise<string | undefined>;
+  sendToken: (payload: SendTokensPayload) => Promise<void>;
+  estimateGas: (payload: SendTokensPayload) => Promise<string | void>;
   wallet: WalletState;
 }
+
+const getEnvironmentNetwork = ({
+  network,
+  networkEnvironment,
+}: WalletState) => {
+  return networkEnvironment.environment === BLOCKCHAIN_ENVIRONMENT.TESTNET
+    ? networkEnvironment.testnetNetwork
+    : network;
+};
 
 const initialState: WalletState = {
   network: NETWORK_NAME.ETHEREUM,
@@ -62,13 +82,161 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
     set(state => ({
       wallet: { ...state.wallet },
     })),
+  networkEnvironment: () => {
+    const { networkEnvironment, network } = get().wallet;
+    return networkEnvironment?.environment === BLOCKCHAIN_ENVIRONMENT.TESTNET
+      ? network
+      : networkEnvironment.testnetNetwork;
+  },
+  estimateGas: async ({ address: toAddr, amount, token }) => {
+    const { address: addr, network, contractAddress } = get().wallet;
+    if (!addr || !toAddr || !amount || !token) return;
+    try {
+      const service = MetamaskClassService.initialize({
+        blockchain: get().wallet.network,
+        environment: get().wallet.networkEnvironment.environment,
+      });
+      if (token === UnitNetwork[network]) {
+        return (
+          await service.getGasRate({ to: toAddr, from: addr, value: amount })
+        ).gasRate;
+      } else {
+        return service.estimateGasOfTxOfToken(
+          { to: toAddr, from: addr, value: amount },
+          contractAddress[token]
+        );
+      }
+    } catch (error) {
+      showError(
+        error instanceof Error ? error.message : "Error fetching gas price."
+      );
+    }
+  },
+  getGasPrice: async () => {
+    try {
+      const metamask = MetamaskClassService.initialize({
+        blockchain: get().wallet.network,
+        environment: get().wallet.networkEnvironment.environment,
+      });
+      if (!metamask)
+        throw new AppError("Metamask not supported or not installed.");
+      const gasPrice = await metamask.getGasPrice();
+      return gasPrice;
+    } catch (error) {
+      showError(
+        error instanceof Error ? error.message : "Error fetching gas price."
+      );
+    }
+  },
+  sendToken: async payload => {
+    const { address, amount, token } = payload;
+    const { networkEnvironment } = get().wallet;
+    if (!address || !amount || !token || !networkEnvironment) return;
+    const fromAddr = get().wallet.address;
+    if (!fromAddr) return;
+    set(state => ({ wallet: { ...state.wallet, isLoading: true } }));
+    try {
+      const metamask = MetamaskClassService.initialize({
+        blockchain: get().wallet.network,
+        environment: networkEnvironment.environment,
+      });
+
+      const nonce = await metamask.getTransactionCount(fromAddr);
+
+      const res = await metamask.sendTransaction({
+        nonce,
+        to: address,
+        from: fromAddr,
+        value: amount,
+      });
+      console.log(res);
+
+      set(state => ({ wallet: { ...state.wallet, isLoading: false } }));
+    } catch (error) {
+      set(state => ({ wallet: { ...state.wallet, isLoading: false } }));
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Error sending tokens to the address."
+      );
+    }
+  },
+  checkInitialConnectionMetamask: async () => {
+    const { network, networkEnvironment } = get().wallet;
+    let metamask: MetamaskClassService | null;
+    let account: JsonRpcSigner | undefined;
+    set(state => ({ wallet: { ...state.wallet, isLoading: true } }));
+    try {
+      metamask = MetamaskClassService.initialize({
+        blockchain: network,
+        environment: networkEnvironment.environment,
+      });
+      account = await metamask?.getAccount();
+      if (!account) throw new Error();
+    } catch {
+      set(state => ({ wallet: { ...state.wallet, isLoading: false } }));
+      return;
+    }
+    try {
+      const alchemy = new AlchemyService({
+        network: getEnvironmentNetwork(get().wallet),
+      });
+      console.log(account.address);
+      const { balance, contractAddress } = await alchemy.getAllBalances(
+        account.address
+      );
+      set(state => ({
+        wallet: {
+          ...state.wallet,
+          address: account.address,
+          balance,
+          contractAddress,
+          isLoading: false,
+        },
+      }));
+
+      metamask.onDisconnect(async () => {
+        set(state => ({
+          wallet: {
+            ...state.wallet,
+            address: undefined,
+            balance: [],
+            contractAddress: {},
+            historical: {
+              isLoading: false,
+              historical: [],
+            },
+          },
+        }));
+      });
+      metamask.accountChanged(async accounts => {
+        if (accounts.length > 0) {
+          const account = accounts[0];
+          const { balance, contractAddress } =
+            await alchemy.getAllBalances(account);
+          set(state => ({
+            wallet: {
+              ...state.wallet,
+              address: account,
+              balance,
+              contractAddress,
+              isLoading: false,
+            },
+          }));
+        }
+      });
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "");
+      set(state => ({ wallet: { ...state.wallet, isLoading: false } }));
+    }
+  },
   getAllTokens: async () => {
-    const address = get().wallet.address;
-    if (!address) return;
+    const { address, networkEnvironment, network } = get().wallet;
+    if (!address || !network || !networkEnvironment) return;
     set(state => ({ wallet: { ...state.wallet, isLoading: true } }));
     try {
       const alchemy = new AlchemyService({
-        network: AlchemyNetwork.ETH_SEPOLIA,
+        network: getEnvironmentNetwork(get().wallet),
       });
       const { balance, contractAddress } =
         await alchemy.getAllBalances(address);
@@ -91,8 +259,8 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
     }
   },
   getHistoricalData: async () => {
-    const address = get().wallet.address;
-    if (!address) return;
+    const wallet = get().wallet;
+    if (!wallet.address) return;
 
     set(state => ({
       wallet: {
@@ -103,9 +271,9 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
 
     try {
       const alchemy = new AlchemyService({
-        network: AlchemyNetwork.ETH_SEPOLIA,
+        network: getEnvironmentNetwork(wallet),
       });
-      const historical = await alchemy.getHistoricalData(address);
+      const historical = await alchemy.getHistoricalData(wallet.address);
 
       set(state => ({
         wallet: {
@@ -129,17 +297,21 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
     }
   },
   connectViaMetamask: async () => {
+    const { networkEnvironment, network } = get().wallet;
     set(state => ({ wallet: { ...state.wallet, isLoading: true } }));
     try {
       const metamask = MetamaskClassService.initialize({
-        blockchain: NETWORK_NAME.ETHEREUM,
-        environment: BLOCKCHAIN_ENVIRONMENT.TESTNET,
+        blockchain: network,
+        environment: networkEnvironment.environment,
       });
       if (!metamask)
         throw new Error("Metamask not supported or not installed.");
       const address = await metamask.connect();
       const alchemy = new AlchemyService({
-        network: AlchemyNetwork.ETH_SEPOLIA,
+        network:
+          networkEnvironment?.environment === BLOCKCHAIN_ENVIRONMENT.TESTNET
+            ? networkEnvironment.testnetNetwork
+            : network,
       });
       const { balance, contractAddress } =
         await alchemy.getAllBalances(address);

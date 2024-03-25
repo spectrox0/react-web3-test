@@ -6,44 +6,49 @@ import { UnitNetwork } from "@constants/unitNetwork";
 import { Balance, HistoricalData } from "@store/wallet.types";
 import {
   Alchemy,
+  Network as AlchemyNetwork,
   AssetTransfersCategory,
   BlockTag,
-  Network,
   TokenBalance,
   Utils,
 } from "alchemy-sdk";
 
 const NETWORK_MAP = Object.freeze({
-  [Network.ETH_SEPOLIA]: TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA,
+  [TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA]: AlchemyNetwork.ETH_SEPOLIA,
+  [TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].GOERLI]: AlchemyNetwork.ETH_GOERLI,
+  [TESTNET_NETWORKS[NETWORK_NAME.POLYGON].MUMBAI]: AlchemyNetwork.MATIC_MUMBAI,
+  [NETWORK_NAME.ETHEREUM]: AlchemyNetwork.ETH_MAINNET,
+  [NETWORK_NAME.POLYGON]: AlchemyNetwork.MATIC_MAINNET,
 } as const);
+export type Network = keyof typeof NETWORK_MAP;
 
 const CATEGORY_TX_MAP = Object.freeze({
-  [AssetTransfersCategory.SPECIALNFT]: "special NFT",
-  [AssetTransfersCategory.EXTERNAL]: AssetTransfersCategory.EXTERNAL,
-  [AssetTransfersCategory.INTERNAL]: AssetTransfersCategory.INTERNAL,
-  [AssetTransfersCategory.ERC20]: "erc 20",
-  [AssetTransfersCategory.ERC721]: "erc 721",
-  [AssetTransfersCategory.ERC1155]: "erc 1155",
+  [AssetTransfersCategory.EXTERNAL]: "External",
+  [AssetTransfersCategory.INTERNAL]: "Internal",
+  [AssetTransfersCategory.SPECIALNFT]: "Special NFT",
+  [AssetTransfersCategory.ERC20]: "ERC 20",
+  [AssetTransfersCategory.ERC721]: "ERC 721",
+  [AssetTransfersCategory.ERC1155]: "ERC 1155",
 } as const);
 
 export class AlchemyService {
   alchemy: Alchemy;
   network: Network;
-  explorerBaseUrl: Record<"TRANSACTION" | "ADDRESS", string>;
+  explorerBaseUrl: string;
 
   constructor({
-    network = Network.ETH_SEPOLIA,
+    network = TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA,
   }: {
-    network: Network.ETH_SEPOLIA;
+    network: keyof typeof NETWORK_MAP;
   }) {
     const config = {
       apiKey: API_KEYS.alchemy.ETHEREUM.SEPOLIA,
-      network,
+      network: NETWORK_MAP[network],
     };
     this.alchemy = new Alchemy(config);
     this.network = network;
     this.explorerBaseUrl =
-      EXPLORER_BASE_URL.ETHEREUM.TESTNET[NETWORK_MAP[network]];
+      EXPLORER_BASE_URL.ETHEREUM.TESTNET[TESTNET_NETWORKS.ETHEREUM.SEPOLIA];
   }
 
   getBalance = async (
@@ -69,6 +74,23 @@ export class AlchemyService {
     return balances.filter(token => {
       return Number(token.tokenBalance) > 0;
     });
+  };
+
+  getCurrentGasPrice = async () => {
+    const gasGasInHex = await this.alchemy.core.getGasPrice();
+    // The the gas price in gwei format , the gwei is the most common format to show the gas price
+    return Utils.formatUnits(gasGasInHex, "gwei");
+  };
+
+  estimateGasOfTx = async (tx: { to: string }) => {
+    const res = await this.alchemy.core.estimateGas({
+      to: tx.to,
+      // `function deposit() payable`
+      data: "0xd0e30db0",
+      // 1 ether
+      value: Utils.parseEther("1.0"),
+    });
+    return res;
   };
 
   getAllTokens = async (balances: TokenBalance[]) => {
@@ -144,7 +166,7 @@ export class AlchemyService {
 
     return Promise.all(
       data.map(async tx => {
-        const urlExplorer = `${this.explorerBaseUrl.TRANSACTION}${tx.hash}`;
+        const urlExplorer = `${this.explorerBaseUrl}tx/${tx.hash}`;
         const date = await this.alchemy.core.getBlock(tx.blockNum);
         return {
           date: date.timestamp * 1000,

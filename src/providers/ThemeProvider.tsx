@@ -1,7 +1,10 @@
 import { FCC } from "@types";
-import { createContext, useEffect, useState } from "react";
+import localForage from "localforage";
+import { createContext, useLayoutEffect, useState } from "react";
 
 type Theme = "light" | "dark";
+// list all possibles themes
+const themes: readonly Theme[] = ["light", "dark"] as const;
 interface ThemeContextProps {
   theme: Theme;
   toggleTheme: () => void;
@@ -11,19 +14,38 @@ export const ThemeContext = createContext<ThemeContextProps | undefined>(
 );
 
 export const ThemeProvider: FCC = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>("dark");
-  const toggleTheme = () => {
-    setTheme(prev => (prev === "light" ? "dark" : "light"));
-    const root = document.getElementsByTagName("html")[0];
-    root.classList.toggle("dark");
+  const getInitialTheme = async (): Promise<Theme> => {
+    return localForage
+      .getItem<Theme | undefined>("theme")
+      .then(
+        value =>
+          themes.find(a => value === a) ||
+          (window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light")
+      );
   };
+  const [theme, setTheme] = useState<Theme>("dark");
 
-  useEffect(() => {
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const newTheme = prev === "light" ? "dark" : "light";
+      localForage.setItem("theme", newTheme);
+      return newTheme;
+    });
+  };
+  useLayoutEffect(() => {
     const root = document.getElementsByTagName("html")[0];
     const isDark = root.classList.contains("dark");
-    if (!isDark) {
-      setTheme("light");
+    if (!isDark && theme === "dark") {
+      root.classList.add("dark");
+    } else if (isDark && theme === "light") {
+      root.classList.remove("dark");
     }
+  }, [theme]);
+
+  useLayoutEffect(() => {
+    getInitialTheme().then(setTheme);
   }, []);
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

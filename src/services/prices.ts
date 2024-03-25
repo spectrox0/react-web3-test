@@ -70,8 +70,9 @@ export const getPrices = async ({
 }): Promise<{ unit: CRYPTO_UNITS; value: number; percentage: number }[]> => {
   const cryptoIds = keys.map(key => CRYPTO_IDS[key]).join(",");
   const endpoint = `simple/price?ids=${cryptoIds}&vs_currencies=${currency}&include_24hr_change=${percentage}`;
-  const { data } = await client.get<Response>(endpoint);
-
+  const res = await client.get<Response>(endpoint).catch(() => undefined);
+  if (!res) return [];
+  const data = res.data;
   return (Object.entries(data) as Entries<Response>).map(([key, value]) => {
     return {
       unit: Object.entries(CRYPTO_IDS).find(

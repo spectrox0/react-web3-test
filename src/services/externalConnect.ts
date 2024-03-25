@@ -1,19 +1,30 @@
 import { BlockchainByMethod, EXTERNAL_METHODS } from "@constants";
 import { BLOCKCHAIN_ENVIRONMENT } from "@constants/blockchainEnvironment";
+import {
+  defaultTestnetNetwork,
+  TestnetNetwork,
+} from "@constants/testnetNetworks";
 
-export type ConstructorExternalMethod<T extends EXTERNAL_METHODS> = {
-  environment: BLOCKCHAIN_ENVIRONMENT;
-  method: T;
-  blockchain: BlockchainByMethod[T];
+export type ConstructorExternalMethod<
+  T extends EXTERNAL_METHODS,
+  E extends BlockchainByMethod[T] = BlockchainByMethod[T],
+> = {
+  readonly environment: BLOCKCHAIN_ENVIRONMENT;
+  readonly method: T;
+  readonly blockchain: E;
+  readonly testnetNetwork?: TestnetNetwork[E];
 };
 export abstract class ExternalConnectMethod<
-  T extends EXTERNAL_METHODS = EXTERNAL_METHODS,
+  T extends EXTERNAL_METHODS,
+  E extends BlockchainByMethod[T] = BlockchainByMethod[T],
 > {
   protected environment: BLOCKCHAIN_ENVIRONMENT;
 
   protected method: T;
 
-  protected blockchain: BlockchainByMethod[T];
+  protected blockchain: E;
+
+  readonly testnetNetwork: TestnetNetwork[E];
 
   protected address?: string;
 
@@ -25,8 +36,13 @@ export abstract class ExternalConnectMethod<
     environment,
     method,
     blockchain,
-  }: ConstructorExternalMethod<T>) {
+    testnetNetwork,
+  }: ConstructorExternalMethod<T, E>) {
     this.environment = environment;
+    this.testnetNetwork =
+      testnetNetwork ||
+      (defaultTestnetNetwork[blockchain] as TestnetNetwork[E]);
+
     this.method = method;
     this.blockchain = blockchain;
   }
@@ -39,5 +55,14 @@ export abstract class ExternalConnectMethod<
 
   abstract getSignature: () => Promise<string | undefined> | string | undefined;
 
-  abstract sendTransaction: (params: unknown) => Promise<unknown> | unknown;
+  abstract sendTransaction: (params: {
+    value?: string;
+    to?: string;
+    data?: string;
+    from?: string;
+    chainId?: string;
+    gasLimit?: string;
+    maxFeePerGas: string;
+    maxPriorityFeePerGas?: string;
+  }) => Promise<unknown> | unknown;
 }

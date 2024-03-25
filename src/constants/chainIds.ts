@@ -1,3 +1,4 @@
+import { API_KEYS } from "@config";
 import { BLOCKCHAIN_ENVIRONMENT } from "./blockchainEnvironment";
 import { NETWORK_NAME } from "./networkName";
 import { defaultTestnetNetwork, TESTNET_NETWORKS } from "./testnetNetworks";
@@ -37,6 +38,7 @@ export const rpcUrls = Object.freeze({
         "https://endpoints.omniatech.io/v1/eth/goerli/public",
       ],
       [TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA]: [
+        `https://eth-sepolia.g.alchemy.com/v2/${API_KEYS.alchemy.ETHEREUM.SEPOLIA}`,
         "https://ethereum-sepolia-rpc.publicnode.com",
         "https://endpoints.omniatech.io/v1/eth/sepolia/public",
       ],
@@ -50,6 +52,7 @@ export const rpcUrls = Object.freeze({
   },
   [BLOCKCHAIN_ENVIRONMENT.MAINNET]: {
     [NETWORK_NAME.ETHEREUM]: [
+      `https://eth-mainnet.g.alchemy.com/v2/${API_KEYS.alchemy.ETHEREUM.MAINNET}`,
       "https://ethereum.publicnode.com",
       "https://eth.llamarpc.com",
       "https://rpc.mevblocker.io",
