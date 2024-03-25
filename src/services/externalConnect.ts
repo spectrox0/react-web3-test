@@ -56,12 +56,13 @@ export abstract class ExternalConnectMethod<
   abstract getSignature: () => Promise<string | undefined> | string | undefined;
 
   abstract sendTransaction: (params: {
-    value?: string;
+    value?: string | number;
     to?: string;
     data?: string;
     from?: string;
     chainId?: string;
     gasLimit?: string;
+    nonce?: string | number;
     maxFeePerGas: string;
     maxPriorityFeePerGas?: string;
   }) => Promise<unknown> | unknown;

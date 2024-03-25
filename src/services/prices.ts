@@ -1,5 +1,7 @@
 import { API_KEYS } from "@config";
+import { NETWORK_NAME } from "@constants";
 import { CRYPTO_UNITS } from "@constants/unit";
+import { getTokens } from "@utils/getTokens";
 import axios from "axios";
 import { CryptoCurrencyResponse } from "./price.type";
 
@@ -16,7 +18,7 @@ const CRYPTO_IDS = {
   [CRYPTO_UNITS.USDC]: "usd-coin",
   [CRYPTO_UNITS.MATIC]: "matic-network",
   [CRYPTO_UNITS.ETH]: "ethereum",
-  [CRYPTO_UNITS.WETH]: "wrapped-ethereum",
+  [CRYPTO_UNITS.WETH]: "weth",
   [CRYPTO_UNITS.USDT]: "tether",
   [CRYPTO_UNITS.ADA]: "cardano",
   [CRYPTO_UNITS.BNB]: "binancecoin",
@@ -61,25 +63,43 @@ export const getCoinGeckoIdBySymbols = async (
 
 export const getPrices = async ({
   keys,
-  percentage,
+  percentage = true,
   currency = "usd",
 }: {
-  keys: CRYPTO_UNITS[];
-  percentage: boolean;
+  keys: (CRYPTO_UNITS | string)[];
+  percentage?: boolean;
   currency?: Currency;
 }): Promise<{ unit: CRYPTO_UNITS; value: number; percentage: number }[]> => {
-  const cryptoIds = keys.map(key => CRYPTO_IDS[key]).join(",");
+  const idsMap = {
+    ...CRYPTO_IDS,
+  } as Record<string, string>;
+  const keysNotFound = keys.filter(
+    key => !CRYPTO_IDS[key.toUpperCase() as CRYPTO_UNITS]
+  );
+  if (keysNotFound.length) {
+    (await getTokens(NETWORK_NAME.ETHEREUM))
+      .filter(
+        res =>
+          res.coingeckoId !== null &&
+          keysNotFound.some(key => key === res.symbol.toUpperCase())
+      )
+      .forEach(res => {
+        idsMap[res.symbol.toUpperCase()] = res.coingeckoId as string;
+      });
+  }
+  console.log(idsMap);
+  const cryptoIds = keys.map(key => idsMap[key]).join(",");
   const endpoint = `simple/price?ids=${cryptoIds}&vs_currencies=${currency}&include_24hr_change=${percentage}`;
   const res = await client.get<Response>(endpoint).catch(() => undefined);
   if (!res) return [];
   const data = res.data;
   return (Object.entries(data) as Entries<Response>).map(([key, value]) => {
     return {
-      unit: Object.entries(CRYPTO_IDS).find(
+      unit: Object.entries(idsMap).find(
         ([, value]) => value === key
       )?.[0] as CRYPTO_UNITS,
       value: value[currency as Currency] as number,
-      percentage: value[`${currency}_24h_change`] as number,
+      percentage: (value[`${currency}_24h_change`] as number) / 100,
     };
   });
 };

@@ -17,7 +17,6 @@ export const EXPLORER_BASE_URL = Object.freeze({
       [TESTNET_NETWORKS.ETHEREUM.SEPOLIA]: "https://sepolia.etherscan.io/",
     },
   },
-
   [NETWORK_NAME.POLYGON]: {
     [BLOCKCHAIN_ENVIRONMENT.TESTNET]: "https://mumbai.polygonscan.com/",
     [BLOCKCHAIN_ENVIRONMENT.MAINNET]: "https://polygonscan.com/",

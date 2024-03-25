@@ -41,6 +41,13 @@ interface MetamaskError extends Error {
   code: number;
   data?: unknown;
 }
+type Balance = {
+  value: number;
+  symbol: string;
+  valueInWei: bigint;
+  decimals: number;
+  name: string;
+};
 export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS.METAMASK> {
   readonly provider: BrowserProvider;
 
@@ -232,16 +239,43 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
   ): Promise<TransactionReceipt | null> =>
     this.provider.getTransactionReceipt(txId);
 
-  getCryptoBalance = async (account: string | ethers.JsonRpcSigner) => {
+  getCryptoBalance = async (
+    account: string | ethers.JsonRpcSigner
+  ): Promise<Balance> => {
     const balance = await this.provider.getBalance(account);
     return {
       value: Number(formatEther(balance)),
       symbol: UnitNetwork[this.blockchain],
       valueInWei: balance,
+      name: this.blockchain,
       decimals: WEI_DECIMAL, // <--- This is the default value for the decimals of the crypto currency in the network (18 for Ethereum (ETH) and Polygon (MATIC)),
     };
   };
 
+  getContractBalance = async (
+    account: string | ethers.JsonRpcSigner,
+    contractAddr: string
+  ): Promise<Balance> => {
+    const contract = new ethers.Contract(
+      contractAddr,
+      ABI_ERC20,
+      this.provider
+    );
+    const [balance, decimals, symbol, name] = await Promise.all([
+      contract.balanceOf(account),
+      contract.decimals(),
+      contract.symbol(),
+      contract.name(),
+    ]);
+    const formatDecimals = Number(decimals);
+    return {
+      value: Number(balance) / 10 ** formatDecimals,
+      decimals: formatDecimals,
+      symbol,
+      name,
+      valueInWei: balance, // <--- This is the default value for the decimals of the crypto currency in the network (18 for Ethereum (ETH) and Polygon (MATIC)),
+    };
+  };
   getBalance = async ({
     account,
     symbol = UnitNetwork[
@@ -276,11 +310,16 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     };
   };
 
-  getAllBalances = async (account: string | ethers.JsonRpcSigner) => {
+  getAllBalances = async (
+    account: string | ethers.JsonRpcSigner,
+    contractsAddress: string[] = []
+  ) => {
     return Promise.allSettled(
-      AVAILABLE_TOKEN[this.blockchain].map(async symbol => {
-        return this.getBalance({ account, symbol });
-      })
+      [this.getCryptoBalance(account)].concat(
+        contractsAddress.map(async addr => {
+          return this.getContractBalance(account, addr);
+        })
+      )
     ).then(results => {
       return (
         results.filter(

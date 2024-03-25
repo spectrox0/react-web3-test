@@ -1,5 +1,5 @@
 import { CRYPTO_UNITS } from "@constants/unit";
-import { Currency, getCoinGeckoIdBySymbols } from "@services/prices";
+import { Currency, getPrices } from "@services/prices";
 import { create } from "zustand";
 import { useWalletStore } from "./wallet";
 
@@ -29,7 +29,7 @@ export const usePriceStore = create<PriceStoreState>(set => ({
       const tokenInBalance = useWalletStore
         .getState()
         .wallet.balance.map(token => token.symbol);
-      const prices = await getCoinGeckoIdBySymbols(tokenInBalance, currency);
+      const prices = await getPrices({ keys: tokenInBalance, currency });
       set(state => ({
         prices: {
           ...state.prices,
