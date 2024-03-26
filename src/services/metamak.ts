@@ -2,16 +2,18 @@ import { EXTERNAL_METHODS, NETWORK_NAME } from "@constants";
 import { AVAILABLE_TOKEN, AvailableToken } from "@constants/availableToken";
 import { EXPLORER_BASE_URL } from "@constants/baseExplorer";
 import { BLOCKCHAIN_ENVIRONMENT } from "@constants/blockchainEnvironment";
-import { chainId, rpcUrls, testnetDefaultRpcUrls } from "@constants/chainIds";
+import { chainId } from "@constants/chainIds";
 import {
   contractAddress,
   defaultTestnetContractAddress,
 } from "@constants/contractAddress";
+import { rpcUrls, testnetDefaultRpcUrls } from "@constants/rpcUrls";
 import { TESTNET_NETWORKS } from "@constants/testnetNetworks";
 import { CRYPTO_UNITS } from "@constants/unit";
 import { UnitNetwork } from "@constants/unitNetwork";
 import { WEI_DECIMAL } from "@constants/weiDecimal";
 import { ABI_ERC20, AppError } from "@utils";
+import { areAddressesEqual } from "@utils/address";
 import {
   BrowserProvider,
   Contract,
@@ -23,6 +25,7 @@ import {
   TransactionReceipt,
   TransactionRequest,
   TransactionResponse,
+  WebSocketProvider,
 } from "ethers";
 import {
   ConstructorExternalMethod,
@@ -50,15 +53,28 @@ type Balance = {
   name: string;
 };
 
-type CallbackTransfer = ({
-  from,
-  to,
-  value,
-}: {
-  from: string;
-  to: string;
-  value: string;
-}) => void;
+type CallbackTransfer = (
+  from: string,
+  to: string,
+  value: string,
+  event: {
+    blockNumber: number;
+    transactionIndex: number;
+    transactionHash: string;
+    logIndex: number;
+    log: {
+      address: string;
+      blockHash: string;
+      blockNumber: number;
+      data: string;
+      logIndex: number;
+      removed: boolean;
+      topics: string[];
+      transactionHash: string;
+    };
+    removed: boolean;
+  }
+) => void;
 export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS.METAMASK> {
   readonly provider: BrowserProvider;
 
@@ -67,6 +83,7 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
   readonly rpcUrls: readonly string[];
 
   readonly contractAddress: Record<string, string>;
+  readonly websocketProvider: WebSocketProvider;
 
   constructor(
     {
@@ -88,6 +105,9 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     });
     this.provider = provider;
 
+    this.websocketProvider = new WebSocketProvider(
+      rpcUrls.TESTNET.ETHEREUM.SEPOLIA[1]
+    );
     // This is the chainId for the network you want to connect
     // We need to convert it to hexadecimal
     const getChainId = () => {
@@ -264,22 +284,55 @@ export class MetamaskClassService extends ExternalConnectMethod<EXTERNAL_METHODS
     this.provider.removeAllListeners("block");
   };
 
-  subscribeContract = async (contract: string, callback: CallbackTransfer) => {
-    const contractInstance = new ethers.Contract(
+  subscribeContract = async (
+    contract: string,
+    addr: string,
+    callback: (receipt: TransactionReceipt | null) => void
+  ) => {
+    const contractInstance = new Contract(
       contract,
       ABI_ERC20,
-      this.provider
+      this.websocketProvider
     );
-    contractInstance.on("Transfer", callback);
+    contractInstance.on("Transfer", (async (from, to, _, eventData) => {
+      if (!areAddressesEqual(addr, from) && !areAddressesEqual(addr, to))
+        return;
+      const hash = eventData.transactionHash || eventData.log.transactionHash;
+      this.waitForTransaction(hash).then(callback);
+    }) as CallbackTransfer);
+  };
+
+  subscribeTransactions = async (
+    addr: string,
+    callback: (
+      transaction: TransactionResponse,
+      receipt: TransactionReceipt | null
+    ) => void
+  ) => {
+    this.websocketProvider.on("pending", async (txHash: string) => {
+      const transaction = await this.provider.getTransaction(txHash);
+      if (!transaction) return;
+      if (
+        !areAddressesEqual(transaction?.from, addr) &&
+        !areAddressesEqual(transaction?.to, addr)
+      )
+        return;
+      const receipt = await this.waitForTransaction(txHash);
+      callback(transaction, receipt);
+    });
   };
 
   unSubscribeContract = async (contract: string) => {
-    const contractInstance = new ethers.Contract(
+    const contractInstance = new Contract(
       contract,
       ABI_ERC20,
-      this.provider
+      this.websocketProvider
     );
     contractInstance.removeAllListeners("Transfer");
+  };
+
+  unSubscribeTransaction = async () => {
+    this.websocketProvider.removeAllListeners("pending");
   };
 
   getContractAddress = (

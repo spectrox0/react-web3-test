@@ -38,7 +38,9 @@ const TOKEN_LISTS = Object.freeze({
 /**
  * @param chain string with the protocol name. eg ETHEREUM
  */
-export const getTokens = async (chain: NETWORK_NAME) => {
+export const getTokens = async (
+  chain: NETWORK_NAME = NETWORK_NAME.ETHEREUM
+) => {
   // get token list file URL by chain
   const chainTokens = await localForage.getItem<Token[]>(`tokens[${chain}]`);
   if (chainTokens) {

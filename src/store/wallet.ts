@@ -55,6 +55,8 @@ interface WalletStoreState {
   onChainChanged: (chainId: string) => void;
   subscribeMetamaskEvents: () => void;
   unSubscribeMetamaskEvents: () => void;
+  onSubscribeContractTransfer: () => void;
+  unSubscribeContractTransfer: () => void;
   wallet: WalletState;
 }
 
@@ -107,6 +109,40 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
         },
       }));
     }
+  },
+  onSubscribeContractTransfer: () => {
+    const metamask = get().getMetamaskInstance();
+    const alchemy = get().getAlchemyInstance();
+    const { address, contractAddress } = get().wallet;
+    if (!address || !contractAddress) return;
+    const contracts = Object.values(contractAddress);
+    const fnCallback = async () => {
+      const [{ balance, contractAddress }, historical] = await Promise.all([
+        alchemy.getAllBalances(address),
+        alchemy.getHistoricalData(address),
+      ]);
+      set(state => ({
+        wallet: {
+          ...state.wallet,
+          address,
+          historical: { isLoading: false, historical },
+          balance,
+          contractAddress,
+          isLoading: false,
+        },
+      }));
+    };
+    metamask.subscribeTransactions(address, fnCallback);
+    for (const contract of contracts) {
+      metamask.subscribeContract(contract, address, fnCallback);
+    }
+  },
+  unSubscribeContractTransfer: () => {
+    const metamask = get().getMetamaskInstance();
+    metamask.unSubscribeTransaction();
+    Object.values(get().wallet.contractAddress).forEach(
+      metamask.unSubscribeContract
+    );
   },
   onChainChanged: async () => {
     const metamask = get().getMetamaskInstance();
