@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "postinstall": "pnpx husky install",
     "build": "tsc && vite build",
     "format": "prettier --write ./src",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
