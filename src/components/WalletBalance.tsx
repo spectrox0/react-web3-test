@@ -4,5 +4,5 @@ interface WalletBalanceProps {
   balance: string;
 }
 export const WalletBalance: FC<WalletBalanceProps> = ({ balance }) => {
-  return <p className="font-semibold text-4xl">{balance}</p>;
+  return <p className="text-4xl font-semibold">{balance}</p>;
 };

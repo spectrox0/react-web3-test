@@ -38,9 +38,11 @@ export class AlchemyService {
 
   constructor({
     network = TESTNET_NETWORKS[NETWORK_NAME.ETHEREUM].SEPOLIA,
-  }: {
-    network: keyof typeof NETWORK_MAP;
-  }) {
+  }:
+    | {
+        network?: keyof typeof NETWORK_MAP;
+      }
+    | undefined = {}) {
     const config = {
       apiKey: API_KEYS.alchemy.ETHEREUM.SEPOLIA,
       network: NETWORK_MAP[network],
