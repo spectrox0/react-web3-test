@@ -30,9 +30,12 @@ function App() {
   return (
     <MainLayout>
       {!metamaskSupported ? (
-        <Container className="flex min-h-full w-full flex-1 place-content-center items-center justify-center">
+        <Container className="flex min-h-full w-full flex-1 items-center justify-center">
           <div className="flex flex-col gap-2 p-3">
             <MetamaskIcon className="mx-auto size-52 max-w-full" />
+            <span className="border-red mx-auto self-center rounded-md border-2 border-red-600 bg-red-600/5 px-4 py-3 text-4xl font-bold uppercase tracking-wider text-red-600">
+              Error
+            </span>
             <h1 className="text-center text-2xl font-semibold text-orange-500">
               Metamask not supported
             </h1>
