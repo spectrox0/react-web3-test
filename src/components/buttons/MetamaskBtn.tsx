@@ -11,7 +11,7 @@ export const MetamaskBtn: FC<Props> = ({ className }) => {
   return (
     <MethodBtn
       color="metamask"
-      className={`${className} border font-bold`}
+      className={`${className}  border font-bold`}
       Icon={MetamaskIcon}
       onClick={connectViaMetamask}
     >
