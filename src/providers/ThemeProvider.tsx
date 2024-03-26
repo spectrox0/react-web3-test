@@ -20,7 +20,7 @@ export const ThemeProvider: FCC = ({ children }) => {
       .then(
         value =>
           themes.find(a => value === a) ||
-          (window.matchMedia("(prefers-color-scheme: dark)").matches
+          (window?.matchMedia?.("(prefers-color-scheme: dark)")?.matches
             ? "dark"
             : "light")
       );

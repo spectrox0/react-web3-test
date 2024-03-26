@@ -4,13 +4,16 @@ module.exports = {
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:react/jsx-runtime",
     "plugin:react-hooks/recommended",
     "plugin:tailwindcss/recommended",
+    "prettier",
   ],
   ignorePatterns: ["dist", ".eslintrc.cjs"],
   parser: "@typescript-eslint/parser",
   plugins: ["react-refresh", "tailwindcss"],
   rules: {
+    "react/jsx-no-target-blank": "off",
     "tailwindcss/no-custom-classname": "off",
     "tailwindcss/classnames-order": "warn",
     "react-refresh/only-export-components": [
