@@ -49,7 +49,6 @@ jobs:
       - name: Decode and export environment variables
         run: |
           echo "${{secrets.ENV_VARS}}" | base64 -d > .env
-          source .env
 
       - name: Run Tests
         run: pnpm test
