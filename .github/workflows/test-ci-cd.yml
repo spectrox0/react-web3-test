@@ -11,8 +11,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
+      - name: Install pnpm
+        run: npm install global pnpm
       - name: Install Dependencies
-        run: npm install
+        run: pnpm install
       - name: Build Project
         run: npm run build
       - name: Upload artifact to enable deployment
@@ -20,6 +22,29 @@ jobs:
         with:
           name: production-files
           path: ./dist
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install pnpm
+        run: npm install global pnpm
+      - name: Install Dependencies
+        run: pnpm install
+      - name: Run Tests
+        run: npm run test
+      - name: Decode and export environment variables
+        run: |
+          echo "${{secrets.ENV_VARS}}" | base64 -d > .env
+          source .env
+        env:
+          VITE_ALCHEMY_API_KEY_ETH_MAINNET: ${{ secrets.VITE_ALCHEMY_API_KEY_ETH_MAINNET }}
+          VITE_ALCHEMY_API_KEY_ETH_SEPOLIA: ${{ secrets.VITE_ALCHEMY_API_KEY_ETH_SEPOLIA }}
+          VITE_COINGECKO_API_KEY: ${{ secrets.VITE_COINGECKO_API_KEY }}
   # Deploy Job
   deploy:
     # Add a dependency to the build job
