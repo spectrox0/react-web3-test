@@ -2,7 +2,7 @@ import { BLOCKCHAIN_ENVIRONMENT, NETWORK_NAME } from "@constants";
 import { chainId } from "@constants/chainIds";
 import { TESTNET_NETWORKS, TestnetNetwork } from "@constants/testnetNetworks";
 import { UnitNetwork } from "@constants/unitNetwork";
-import { MetamaskClassService } from "@services";
+import { MetamaskClassService, metamaskSupport } from "@services";
 import { AlchemyService } from "@services/alchemy";
 import { AppError, showError } from "@utils";
 import { JsonRpcSigner } from "ethers";
@@ -38,6 +38,7 @@ export interface WalletState {
   newAmount24h: number;
   transactionLoading: boolean;
   isLoading: boolean;
+  metamaskSupported: boolean;
   historical: HistoricalState;
 }
 interface WalletStoreState {
@@ -85,6 +86,7 @@ const initialState: WalletState = {
   isLoading: false,
   transactionLoading: false,
   percentage24h: 0,
+  metamaskSupported: metamaskSupport(),
   newAmount24h: 0,
 };
 

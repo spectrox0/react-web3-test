@@ -33,7 +33,7 @@ import {
 } from "./externalConnect";
 
 export const metamaskSupport = () =>
-  typeof window !== "undefined" && window.ethereum?.isMetaMask;
+  Boolean(typeof window !== "undefined" && window.ethereum?.isMetaMask);
 const isConstructor = Symbol("IsConstructor");
 
 type Constructor = Omit<
