@@ -26,3 +26,6 @@ yarn-error.log*
 *.tsbuildinfo
 .vercel
 
+
+# tests/driver/vitest/.gitignore
+coverage

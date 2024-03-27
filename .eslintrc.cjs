@@ -1,3 +1,8 @@
+const path = require("path");
+const synpressPath = path.join(
+  process.cwd(),
+  "/node_modules/@synthetixio/synpress"
+);
 module.exports = {
   root: true,
   env: { browser: true, es2020: true },
@@ -8,6 +13,7 @@ module.exports = {
     "plugin:react-hooks/recommended",
     "plugin:tailwindcss/recommended",
     "prettier",
+    `${synpressPath}/.eslintrc.js`,
   ],
   ignorePatterns: ["dist", ".eslintrc.cjs"],
   parser: "@typescript-eslint/parser",
