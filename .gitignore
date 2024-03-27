@@ -29,3 +29,7 @@ yarn-error.log*
 
 # tests/driver/vitest/.gitignore
 coverage
+
+
+dist
+dist/*
