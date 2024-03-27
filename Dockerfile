@@ -1,10 +1,10 @@
 # frontend/Dockerfile
-FROM node:18-alpine as base
+FROM node:20.11  as base
 RUN npm i -g pnpm
 
 FROM base as deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml .
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm i
 
 FROM base AS builder
@@ -16,7 +16,6 @@ COPY . .
 
 RUN pnpm build
 RUN pnpm prune --production
-run pnpm rebuild
 
 FROM nginx:stable-alpine as production
 

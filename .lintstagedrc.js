@@ -1,8 +1,8 @@
 export default {
-  // Type check TypeScript files, excluding cy.ts
+  // Type check TypeScript files, excluding cy.ts and cy.js
   "**/*.(ts|tsx)": filenames => {
     const filteredFilenames = filenames.filter(
-      name => !name.includes("cy.ts") && !name.includes("cy.js")
+      name => !/cy\.(ts|js)$/.test(name)
     );
     return `pnpm tsc --noEmit --files ${filteredFilenames.join(" ")}`;
   },
@@ -10,7 +10,7 @@ export default {
   // Lint & Prettify TS and JS files, excluding cy.ts and cy.js
   "**/*.(ts|tsx|js)": filenames => {
     const filteredFilenames = filenames.filter(
-      name => !name.includes("cy.ts") && !name.includes("cy.js")
+      name => !/cy\.(ts|js)$/.test(name)
     );
     return [
       `pnpm eslint --fix ${filteredFilenames.join(" ")}`,
