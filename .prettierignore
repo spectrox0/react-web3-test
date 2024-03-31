@@ -1,3 +1,3 @@
 node_modules
-__tests__/e2e/*.ts
+__tests__/drivers/synpress/*.ts
 *.cy.ts
