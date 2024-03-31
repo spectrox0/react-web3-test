@@ -7,8 +7,10 @@ interface WalletAddressProps {
 }
 export const WalletAddress: FC<WalletAddressProps> = ({ address }) => {
   return (
-    <div className="flex gap-2 items-center">
-      <p className="font-semibold text-xl">{truncateAddr(address)}</p>
+    <div className="flex items-center gap-2">
+      <p className="text-xl font-semibold" id="wallet-address">
+        {truncateAddr(address)}
+      </p>
       <ClipboardCopyBtn text={address} />
     </div>
   );

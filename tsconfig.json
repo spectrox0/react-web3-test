@@ -47,6 +47,6 @@
       "@config/*": ["src/config/*"]
     }
   },
-  "include": ["src", "__tests__/unitTests"],
+  "include": ["src", "__tests__/drivers/vitest"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

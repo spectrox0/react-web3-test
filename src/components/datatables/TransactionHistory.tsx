@@ -16,6 +16,7 @@ import { FC, ReactNode } from "react";
 interface Props {
   loading: boolean;
   historical: HistoricalData[];
+  id?: string;
 }
 
 type BodyTemplate =
@@ -84,9 +85,11 @@ const DayHeaderTemplate: HeaderGroupTemplate = rowData => {
 export const TransactionHistoryTable: FC<Props> = ({
   historical,
   loading = false,
+  id = "transaction-history",
 }) => {
   return (
     <DataTable
+      id={id}
       value={historical.map(item => ({
         ...item,
         day: formatDateUTC(item.date),

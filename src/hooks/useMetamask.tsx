@@ -15,7 +15,7 @@ export const useMetamask = () => {
       subscribeMetamaskEvents();
       setLoading(false);
     })();
-    return unSubscribeMetamaskEvents;
+    return () => unSubscribeMetamaskEvents();
   }, [
     checkInitialConnectionMetamask,
     subscribeMetamaskEvents,

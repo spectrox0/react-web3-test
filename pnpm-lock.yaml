@@ -103,9 +103,6 @@ devDependencies:
   cypress:
     specifier: ^13.7.1
     version: 13.7.1
-  cypress-wait-until:
-    specifier: ^3.0.1
-    version: 3.0.1
   eslint:
     specifier: ^8.57.0
     version: 8.57.0
@@ -4905,10 +4902,6 @@ packages:
 
   /cypress-wait-until@2.0.1:
     resolution: {integrity: sha512-+IyVnYNiaX1+C+V/LazrJWAi/CqiwfNoRSrFviECQEyolW1gDRy765PZosL2alSSGK8V10Y7BGfOQyZUDgmnjQ==}
-    dev: true
-
-  /cypress-wait-until@3.0.1:
-    resolution: {integrity: sha512-kpoa8yL6Bi/JNsThGBbrrm7g4SNzYyBUv9M5pF6/NTVm/ClY0HnJzeuWnHiAUZKIZ5l86Oedb12wQyjx7/CWPg==}
     dev: true
 
   /cypress@12.17.3:

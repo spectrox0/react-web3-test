@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "prepare": "husky install",
     "test": "vitest",
-    "test:ci": "vitest run"
+    "test:ci": "vitest run",
+    "test:e2e": "env-cmd -f ./__tests__/drivers/synpress/.env npx synpress run -cf synpress.config.ts"
   },
   "dependencies": {
     "alchemy-sdk": "^3.2.0",
@@ -48,7 +49,6 @@
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.18",
     "cypress": "^13.7.1",
-    "cypress-wait-until": "^3.0.1",
     "eslint": "^8.57.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.1.0",

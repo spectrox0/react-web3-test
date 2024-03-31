@@ -1,9 +1,9 @@
 import { FCC } from "@types";
 import { FC, useState } from "react";
-import { TabsMenu } from "./Tabs";
+import { Tab, TabsMenu } from "./Tabs";
 
 interface TabViewsProps {
-  tabs: string[];
+  tabs: Tab[];
   views: FC[];
 }
 export const TabViews: FCC<TabViewsProps> = ({ tabs, views, children }) => {
@@ -11,7 +11,7 @@ export const TabViews: FCC<TabViewsProps> = ({ tabs, views, children }) => {
   const View = views[activeTab];
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex gap-1 flex-wrap">
+      <div className="flex flex-wrap gap-1">
         <TabsMenu
           tabs={tabs}
           activeTab={activeTab}

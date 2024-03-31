@@ -110,7 +110,7 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
           isLoading: false,
         },
       }));
-    }
+    } else get().onDisconnectMetamask();
   },
   onSubscribeContractTransfer: () => {
     const metamask = get().getMetamaskInstance();
@@ -169,10 +169,11 @@ export const useWalletStore = create<WalletStoreState>((set, get) => ({
     }));
   },
   subscribeMetamaskEvents: () => {
+    const { onDisconnectMetamask, onAccountsChanged, onChainChanged } = get();
     const metamask = get().getMetamaskInstance();
-    metamask.onDisconnect(get().onDisconnectMetamask);
-    metamask.onAccountsChanged(get().onAccountsChanged);
-    metamask.onChainChanged(get().onChainChanged);
+    metamask.onDisconnect(onDisconnectMetamask);
+    metamask.onAccountsChanged(onAccountsChanged);
+    metamask.onChainChanged(onChainChanged);
   },
   unSubscribeMetamaskEvents: () => {
     const metamask = get().getMetamaskInstance();
