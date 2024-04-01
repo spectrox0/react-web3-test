@@ -44,9 +44,11 @@ describe("Dark mode test", () => {
   it("I should be able to switch to dark mode", () => {
     cy.visit("http://localhost:5173");
 
+    cy.wait(1000);
     cy.get("html").then($body => {
       const isInitiallyDark = $body.hasClass("dark");
 
+      cy.get("#theme-switch").should("be.visible");
       cy.get("#theme-switch").click();
 
       if (isInitiallyDark) {
