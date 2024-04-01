@@ -26,6 +26,7 @@ export const ThemeProvider: FCC = ({ children }) => {
       );
   };
   const [theme, setTheme] = useState<Theme>("dark");
+  const [loading, setLoading] = useState(true);
 
   const toggleTheme = () => {
     setTheme(prev => {
@@ -45,11 +46,14 @@ export const ThemeProvider: FCC = ({ children }) => {
   }, [theme]);
 
   useLayoutEffect(() => {
-    getInitialTheme().then(setTheme);
+    (async () => {
+      await getInitialTheme().then(setTheme);
+      setLoading(false);
+    })();
   }, []);
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
+      {loading ? null : children}
     </ThemeContext.Provider>
   );
 };

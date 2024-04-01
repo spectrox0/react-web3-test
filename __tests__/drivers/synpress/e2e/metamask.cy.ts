@@ -11,38 +11,40 @@ describe("Metamask test", () => {
     cy.switchToCypressWindow();
   });
 
-  it ("I should see my wallet address", () => {
+  it("I should see my wallet address", () => {
     cy.visit("http://localhost:5173");
     cy.get("#connect-metamask").should("not.exist");
     cy.get("#wallet-balance").should("be.visible");
     cy.get("#wallet-address").should("be.visible");
     cy.get("#wallet-address").should("be.visible");
     cy.get("#wallet-address").contains("0x");
-  })
+  });
 
   it("I should get my history of transactions", () => {
     cy.visit("http://localhost:5173");
     cy.get("#tab-transaction").should("be.visible");
     cy.get("#tab-transaction").click();
-    cy.wait(1000); 
+    cy.wait(1000);
     cy.get("#transaction-history").should("be.visible");
-    cy.get("#transaction-history").children().should("have.length.greaterThan", 0);
+    cy.get("#transaction-history")
+      .children()
+      .should("have.length.greaterThan", 0);
   });
 
-    it("Disconnect Wallet ",() => {
+  it("Disconnect Wallet ", () => {
     cy.visit("http://localhost:5173");
-    cy.switchToMetamaskWindow();
-    cy.disconnectMetamaskWalletFromDapp()
-    cy.disconnectMetamaskWalletFromAllDapps()
-    cy.switchToCypressWindow();
-    cy.get("#connect-metamask").should("be.visible");
+    cy.disconnectMetamaskWalletFromDapp().then(disconnected => {
+      expect(disconnected).to.be.true;
+      cy.reload();
+      cy.get("#connect-metamask").should("be.visible");
+    });
   });
 });
 describe("Dark mode test", () => {
   it("I should be able to switch to dark mode", () => {
     cy.visit("http://localhost:5173");
 
-    cy.get("html").then(($body) => {
+    cy.get("html").then($body => {
       const isInitiallyDark = $body.hasClass("dark");
 
       cy.get("#theme-switch").click();
@@ -61,4 +63,4 @@ describe("Dark mode test", () => {
       }
     });
   });
-})
+});
