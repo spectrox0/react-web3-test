@@ -1,0 +1,41 @@
+image: node:20
+
+definitions:
+  caches:
+    pnpm:
+      path: ~/.pnpm-store
+  steps:
+    - step: &build
+        name: Build
+        caches:
+          - pnpm
+        script:
+          - npm install -g pnpm
+          - pnpm install
+          - pnpm build
+    - step: &test
+        name: Test
+        caches:
+          - pnpm
+        script:
+          - npm install -g pnpm
+          - pnpm install --frozen-lockfile
+          - echo $ENV_VARS | base64 -d > .env
+          - pnpm test:ci
+    - step: &deploy
+        name: Deploy
+        caches:
+          - pnpm
+        script:
+          - npm install -g pnpm
+          - pnpm add --global vercel
+          - vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+          - vercel build --prod --token=$VERCEL_TOKEN
+          - vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+
+pipelines:
+  branches:
+    main:
+      - step: *build
+      - step: *test
+      - step: *deploy
