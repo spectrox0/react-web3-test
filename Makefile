@@ -7,3 +7,6 @@ docker-dev:
 
 create-env-file:
 	cat .env.example > .env
+
+run_tests:
+	pnpm test:ci && pnpm test:e2e
