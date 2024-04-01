@@ -9,4 +9,3 @@ yarn.lock
 pnpm-lock.yaml
 __tests__/e2e
 *.cy.ts
-node_modules/@synthetixio/synpress/**

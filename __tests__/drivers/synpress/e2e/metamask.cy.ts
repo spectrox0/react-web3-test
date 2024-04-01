@@ -29,7 +29,7 @@ describe("Metamask test", () => {
     cy.get("#transaction-history").children().should("have.length.greaterThan", 0);
   });
 
-    after(() => {
+    it("Disconnect Wallet ",() => {
     cy.visit("http://localhost:5173");
     cy.switchToMetamaskWindow();
     cy.disconnectMetamaskWalletFromDapp()
@@ -42,22 +42,22 @@ describe("Dark mode test", () => {
   it("I should be able to switch to dark mode", () => {
     cy.visit("http://localhost:5173");
 
-    cy.get("body").then(($body) => {
+    cy.get("html").then(($body) => {
       const isInitiallyDark = $body.hasClass("dark");
 
       cy.get("#theme-switch").click();
 
       if (isInitiallyDark) {
-        cy.get("body").should("not.have.class", "dark");
+        cy.get("html").should("not.have.class", "dark");
       } else {
-        cy.get("body").should("have.class", "dark");
+        cy.get("html").should("have.class", "dark");
       }
 
       cy.get("#theme-switch").click();
       if (isInitiallyDark) {
-        cy.get("body").should("have.class", "dark");
+        cy.get("html").should("have.class", "dark");
       } else {
-        cy.get("body").should("not.have.class", "dark");
+        cy.get("html").should("not.have.class", "dark");
       }
     });
   });
