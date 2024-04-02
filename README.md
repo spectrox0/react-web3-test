@@ -87,6 +87,7 @@ Welcome to this React.js project using Vite for front-end development. Here you'
     - [Production Environment](#production-environment)
     - [Without Makefile](#without-makefile)
   - [Running Integration Tests](#running-integration-tests)
+  - [Integration Tests Configuration](#integration-tests-configuration)
 
 ## Prerequisites
 
@@ -183,3 +184,19 @@ pnpm test:e2e
 ```
 
 Ensure the server is fully active before initiating the tests to prevent any connection-related test failures.
+
+## Integration Tests Configuration
+
+For the integration tests to run properly, a `.env` file must be present in the `__tests__/drivers/synpress` directory. This file should include:
+
+```env
+SECRET_WORDS="your mnemonic phrase here"
+NETWORK_NAME=sepolia
+```
+
+SECRET_WORDS should be a real mnemonic phrase from an Ethereum wallet.
+NETWORK_NAME specifies the Ethereum network, like sepolia for testing.
+
+Ensure these values are correctly set before running tests.
+
+Please replace `"your mnemonic phrase here"` with your actual mnemonic phrase for the tests.
